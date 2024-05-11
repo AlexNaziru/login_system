@@ -1,0 +1,33 @@
+body {
+    padding-top: 90px;
+    color:#424242;
+    background-color: #E0E0E0;
+}
+
+a:visited {
+    color:#26A69A;
+}
+a:link {
+    color:#424242;
+}
+a:hover {
+    color:#26A69A;
+}
+.btn-custom {
+    color:#E0E0E0;
+    background-color: #26A69A;
+}
+nav a:visited {
+    color:#E0E0E0;
+}
+nav a:link {
+    color:#E0E0E0;
+}
+nav a:hover {
+    color:#424242;
+}
+
+.navbar {
+    color:#E0E0E0;
+    background-color: #26A69A;
+}
