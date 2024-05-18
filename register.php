@@ -1,8 +1,14 @@
 <?php include "includes/init.php"?>
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    foreach ($_POST as $key=>$value) {
-        echo "Key: {$key} - Value: {$value}<br>";
+    try {
+        $sql = "INSERT INTO users (firstname, lastname, username, password, validationcode, email, comments, joined, last_login) 
+                    VALUES ('{$_POST['firstname']}', '{$_POST['lastname']}', '{$_POST['username']}', '{$_POST['password']}', 
+                            '{$_POST['password']}', 'test', '{$_POST['email']}', '{$_POST['comments']}'), current_date, 
+                                current_date)";
+                    echo $sql;
+    } catch (PDOException $exception) {
+        echo "Error: ".$exception->getMessage();
     }
 } else {
     echo "No Post data included";
