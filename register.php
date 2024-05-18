@@ -1,12 +1,15 @@
 <?php include "includes/init.php"?>
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    try {
+    try { /* This statemant will submit to the database */
         $sql = "INSERT INTO users (firstname, lastname, username, password, validationcode, email, comments, joined, last_login) 
-                    VALUES ('{$_POST['firstname']}', '{$_POST['lastname']}', '{$_POST['username']}', '{$_POST['password']}', 
-                            '{$_POST['password']}', 'test', '{$_POST['email']}', '{$_POST['comments']}'), current_date, 
-                                current_date)";
-                    echo $sql;
+                /* Prepared statemants */    
+                VALUES (:firstname, :lastname, :username, :password, 'test', :email, :comments, current_date, current_date)";
+                $stmnt = $pdo->prepare($sql);
+                $user_data = [':firstname'=>$_POST['firstname'], ':lastname'=>$_POST['lastname'], ':username'=>$_POST['username'],
+                                ':password'=>$_POST['password'], ':email'=>$_POST['email'], ':comments'=>$_POST['comments']];
+                $stmnt->execute($user_data);
+                echo "Successfully submitted";
     } catch (PDOException $exception) {
         echo "Error: ".$exception->getMessage();
     }
@@ -56,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             <input type="password" name="confirm_password" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required>
                                         </div>
                                         <div class="form-group">
-                                            <textarea name="comments" id="comments" tabindex="7" class="form-control" placeholder="Comments" required></textarea>
+                                            <textarea name="comments" id="comments" tabindex="7" class="form-control" placeholder="Comments"></textarea>
                                         </div>
                                         <div class="form-group">
                                             <div class="row">
