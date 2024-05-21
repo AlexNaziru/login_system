@@ -7,7 +7,6 @@ $opt = [
     PDO::ATTR_EMULATE_PREPARES => false
 ];
 $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
-echo "Connected to DB";
 
 // PDO for MySQL
 // is the same but in $dsn = "mysql:host=localhost;dbname=login;port=3306;charset=utf8";
