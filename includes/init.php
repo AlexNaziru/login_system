@@ -1,4 +1,8 @@
 <?php
+// Output buffering
+ob_start();
+// Session
+session_start();
 // PDO for PostgreSQL connection
 $dsn = "pgsql:host=localhost;dbname=login;port=5432";
 $opt = [
@@ -12,3 +16,4 @@ $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
 // is the same but in $dsn = "mysql:host=localhost;dbname=login;port=3306;charset=utf8";
 // the rest is identical but the username might be mysql by default
 
+include "functions.php";

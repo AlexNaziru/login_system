@@ -27,28 +27,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($email != $email_conf) {
         $error[] = "Email's do not match!";
     }
-    // Querying the db to see if there are duplicate usernames
-    try {
-        $stmnt = $pdo->prepare("SELECT username FROM users WHERE username = :username");
-        $user_data = [":username"=> $uname];
-        $stmnt->execute($user_data);
-        if ($stmnt->rowCount() > 0) {
-            $error[] = "Username '{$uname}' already exists.";
-        }
-    } catch (PDOException $exception) {
-        echo "Error: {$exception->getMessage()}";
-    }
 
-    // Querying for the email
-    try {
-        $stmnt = $pdo->prepare("SELECT email FROM users WHERE email = :email");
-        $user_data = [":email" => $email];
-        $stmnt->execute($user_data);
-        if ($stmnt->rowCount() > 0) {
-            $error[] = "Email '{$email}' already exists";
-        }
-    } catch (PDOException $exception) {
-        echo "Error: {$exception->getMessage()}";
+    // Querying the db to see if there are duplicate usernames
+    if (count_field_val($pdo, "users", "username", $uname) != 0) {
+        $error[] = "Username '{$uname}' already exists.";
+    }
+    if (count_field_val($pdo, "users", "email", $email) !=0) {
+        $error[] = "Email '{$email}' already exists";
     }
 
     // Negating isset in case there are no errors
@@ -61,7 +46,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user_data = [':firstname' => $fname, ':lastname' => $lname, ':username' => $uname,
                 ':password' => $pass, ':email' => $email, ':comments' => $comments];
             $stmnt->execute($user_data);
-            echo "Successfully submitted";
+            // Redirecting user after a successful registration
+            $_SESSION['message'] = "User successfully registered";
+            redirect("index.php");
         } catch (PDOException $exception) {
             echo "Error: " . $exception->getMessage();
         }
