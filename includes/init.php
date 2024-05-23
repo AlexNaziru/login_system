@@ -16,4 +16,8 @@ $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
 // is the same but in $dsn = "mysql:host=localhost;dbname=login;port=3306;charset=utf8";
 // the rest is identical but the username might be mysql by default
 
+// Sending verification email variables
+$from_email = "alex.naziru.dev@gmail.com";
+$reply = "alex.naziru.dev@gmail.com";
+
 include "functions.php";

@@ -18,3 +18,14 @@ function count_field_val($pdo, $tbl, $fld, $value)
         return $e->getMessage();
     }
 }
+
+// Email function
+function send_email($to, $subject, $body, $from, $reply)
+{
+    $headers = "From: {$from}"."\r\n"."Reply-to: {$reply} "." \r\n "."X-Mailer:PHP/".phpversion();
+    if ($_SERVER['SERVER_NAME'] != "localhost") {
+        mail($to, $subject, $body, $headers);
+    } else {
+        echo "<hr><p>To: {$to}</p><p>Subject: {$subject}</p><p>{$body}</p><p>".$headers."</p><hr>";
+    }
+}

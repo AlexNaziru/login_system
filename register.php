@@ -38,14 +38,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Negating isset in case there are no errors
     if (!isset($error)) {
+        $vcode = generate_token();
         try { /* This statemant will submit to the database */
             $sql = "INSERT INTO users (firstname, lastname, username, password, validationcode, email, comments, joined, last_login) 
                     /* Prepared statemants */    
-                    VALUES (:firstname, :lastname, :username, :password, 'test', :email, :comments, current_date, current_date)";
+                    VALUES (:firstname, :lastname, :username, :password, :vcode, :email, :comments, current_date, current_date)";
             $stmnt = $pdo->prepare($sql);
             $user_data = [':firstname' => $fname, ':lastname' => $lname, ':username' => $uname,
-                ':password' => $pass, ':email' => $email, ':comments' => $comments];
+                ':password' => password_hash($pass, PASSWORD_BCRYPT), ':email' => $email, ':comments' => $comments,
+                ':vcode'=>$vcode];
             $stmnt->execute($user_data);
+            // Sending verification e-mail
+            $body = "<p> Click on the link bellow to activate your account! </p>
+                        <p><a href='activate.php?user={$uname}&code={$vcode}'>Activate account</a></p>";
+            send_email($email, "Activate User", $body, $from_email, $reply_email);
             // Redirecting user after a successful registration
             $_SESSION['message'] = "User successfully registered";
             redirect("index.php");
