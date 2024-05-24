@@ -29,3 +29,16 @@ function send_email($to, $subject, $body, $from, $reply)
         echo "<hr><p>To: {$to}</p><p>Subject: {$subject}</p><p>{$body}</p><p>".$headers."</p><hr>";
     }
 }
+
+// Get validation code
+function validation_code($user, $pdo)
+{
+    try {
+        $stmnt = $pdo->prepare("SELECT validationcode FROM users WHERE username = :username");
+        $stmnt->execute([':username'=>$user]);
+        $row = $stmnt->fetch();
+        return $row['validationcode'];
+    } catch (PDOException $e) {
+        return $e->getMessage();
+    }
+}
