@@ -10,7 +10,7 @@ if (isset($_GET['user'])) {
             try {
                 $stmnt = $pdo->prepare("UPDATE users SET active = 1 WHERE username = :username");
                 $stmnt->execute([':username'=> $user]);
-                $_SESSION['message'] = "User Activated, Please log in";
+                set_msg("User Activated, Please log in", "success");
                 redirect('index.php');
             } catch (PDOException $e) {
                 echo "Error: {$e}";
@@ -22,10 +22,10 @@ if (isset($_GET['user'])) {
             redirect('index.php');
         }
     } else {
-        $_SESSION['message'] = "No validation code included with activation request";
+        set_msg("No validation code included with activation request");
         redirect('index.php');
     }
 } else {
-    $_SESSION['message'] = "User is not activated!";
+    set_msg("User is not activated!");
     redirect('index.php');
 }

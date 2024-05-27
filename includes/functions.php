@@ -3,10 +3,49 @@ function redirect($location)
 {
     header("Location: {$location}");
 }
+
 function generate_token()
 {
     return md5(microtime().mt_rand());
 }
+
+// Messaging system
+function set_msg($msg, $level="danger")
+{
+    // If it's not a valid bootstrap level
+    if (($level != "primary") && ($level != "success") && ($level != "info") && ($level != "warning")) {
+        $level = "danger";
+    }
+    if (empty($msg)) {
+        unset($_SESSION["message"]);
+    } else {
+        $_SESSION["message"] = "<h4 class='bg-{$level} text-center'>{$msg}</h4>";
+    }
+}
+
+// show message function
+function show_msg()
+{
+    if (isset($_SESSION["message"])) {
+        echo $_SESSION["message"];
+        unset($_SESSION["message"]);
+    }
+}
+
+
+// Email function
+function send_email($to, $subject, $body, $from, $reply)
+{
+    $headers = "From: {$from}"."\r\n"."Reply-to: {$reply} "." \r\n "."X-Mailer:PHP/".phpversion();
+    if ($_SERVER['SERVER_NAME'] != "localhost") {
+        mail($to, $subject, $body, $headers);
+    } else {
+        echo "<hr><p>To: {$to}</p><p>Subject: {$subject}</p><p>{$body}</p><p>".$headers."</p><hr>";
+    }
+}
+
+// ************ Database Functions ****************
+
 function count_field_val($pdo, $tbl, $fld, $value)
 {
     try {
@@ -19,14 +58,16 @@ function count_field_val($pdo, $tbl, $fld, $value)
     }
 }
 
-// Email function
-function send_email($to, $subject, $body, $from, $reply)
+// Returns all the data
+function return_field_data($pdo, $tbl, $fld, $value)
 {
-    $headers = "From: {$from}"."\r\n"."Reply-to: {$reply} "." \r\n "."X-Mailer:PHP/".phpversion();
-    if ($_SERVER['SERVER_NAME'] != "localhost") {
-        mail($to, $subject, $body, $headers);
-    } else {
-        echo "<hr><p>To: {$to}</p><p>Subject: {$subject}</p><p>{$body}</p><p>".$headers."</p><hr>";
+    try {
+        $sql = "SELECT * FROM {$tbl} WHERE {$fld}=:value";
+        $stmnt = $pdo->prepare($sql);
+        $stmnt->execute([":value" => $value]);
+        return $stmnt->fetch(); // Instead of rowCount, we are returning the entire row as in the fetch method
+    } catch (PDOException $e) {
+        return $e->getMessage();
     }
 }
 
@@ -42,3 +83,4 @@ function validation_code($user, $pdo)
         return $e->getMessage();
     }
 }
+

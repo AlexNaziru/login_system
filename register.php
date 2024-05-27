@@ -48,9 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ':password' => password_hash($pass, PASSWORD_BCRYPT), ':email' => $email, ':comments' => $comments,
                 ':vcode'=>$vcode];
             $stmnt->execute($user_data);
+
             // Sending verification e-mail
-            $body = "<p> Click on the link bellow to activate your account! </p>
-                        <p><a href='activate.php?user={$uname}&code={$vcode}'>Activate account</a></p>";
+            $body = "Click on the link bellow to activate your account!\r\n
+                      http://{$_SERVER['SERVER_NAME']}/{$root_directory}/activate.php?user={$uname}&code={$vcode}'>Activate account";
             send_email($email, "Activate User", $body, $from_email, $reply_email);
             // Redirecting user after a successful registration
             $_SESSION['message'] = "User successfully registered";
@@ -82,11 +83,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row">
                 <div class="col-lg-6 col-lg-offset-3">
                     <?php
-                        if (isset($error)) {
-                            foreach ($error as $msg) {
-                                echo "<p class='bg-danger text-center'>{$msg}</p>";
-                            }
+                    show_msg();
+                    if (isset($error)) {
+                        foreach ($error as $msg) {
+                            echo "<p class='bg-danger text-center'>{$msg}</p>";
                         }
+                    }
                     ?>
                 </div>
             </div>
