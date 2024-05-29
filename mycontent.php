@@ -2,7 +2,7 @@
 
 <?php
 //If they are logged in, they can see this page
-if (isset($_SESSION["username"])) {
+if (logged_in()) {
     $username = $_SESSION["username"];
 } else {
     // If they are not logged in, they won't

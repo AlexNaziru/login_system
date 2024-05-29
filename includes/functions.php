@@ -9,6 +9,27 @@ function generate_token()
     return md5(microtime().mt_rand());
 }
 
+// Logged in
+function logged_in()
+{
+    if (isset($_SESSION["username"])) {
+        return true;
+    } else {
+        // If the session is not set, we have to check for the cookie that is set
+        if (isset($_COOKIE["username"])) {
+
+            // we are also going to start a session
+            $_SESSION["username"] = $_COOKIE["username"];
+            return true;
+
+            // if there is no session and no cookie, means we are not logged in and we redirect
+        } else {
+            // If they are not logged in, they won't
+            return false;
+        }
+    }
+}
+
 // Messaging system
 function set_msg($msg, $level="danger")
 {

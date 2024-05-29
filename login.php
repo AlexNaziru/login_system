@@ -6,6 +6,14 @@ include "includes/init.php";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST["username"];
     $password = $_POST["password"];
+
+    // Remember value
+    if (isset($_POST["remember"])) {
+        $remember = "on";
+    } else {
+        $remember = "off";
+    }
+
     // verifying if the user exists
     if (count_field_val($pdo, "users", "username", $username) > 0) {
         $user_data = return_field_data($pdo, "users", "username", $username);
@@ -15,8 +23,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Checking if the password matched the db
             if (password_verify($password, $user_data["password"])) {
                 set_msg("Logged in successfully", "success");
+
                 // Setting our session variable
                 $_SESSION["username"] = $username;
+
+                // If remember is set to on we will set a cookie with all the info to remember the ON value
+                if ($remember = "on") {
+                    // key, value and a time in unix (here is a day, bc there are 86400 secs/day, if you want for a week, we put *7)
+                    setcookie("username", $username, time() + 86400);
+                }
+
                 redirect("mycontent.php");
             } else {
                 set_msg("Invalid password");
