@@ -86,8 +86,9 @@ function return_field_data($pdo, $tbl, $fld, $value)
         $sql = "SELECT * FROM {$tbl} WHERE {$fld}=:value";
         $stmnt = $pdo->prepare($sql);
         $stmnt->execute([":value" => $value]);
-        return $stmnt->fetch(); // Instead of rowCount, we are returning the entire row as in the fetch method
+        return $stmnt->fetch(PDO::FETCH_ASSOC); // Instead of rowCount, we are returning the entire row as in the fetch method
     } catch (PDOException $e) {
+        error_log('Database error in return_field_data(): ' . $e->getMessage());
         return $e->getMessage();
     }
 }
