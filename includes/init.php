@@ -17,7 +17,7 @@ $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
 // the rest is identical but the username might be mysql by default
 
 // Sending verification email variables
-$root_directory = "login_course";
+$root_directory = "login_system";
 $from_email = "alex.naziru.dev@gmail.com";
 $reply = "alex.naziru.dev@gmail.com";
 

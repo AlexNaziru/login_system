@@ -5,9 +5,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $lname = $_POST['lastname'];
     $uname = $_POST['username'];
     $pass = $_POST['password'];
-    $pass_conf = $_POST['password_confirm'];
+    $pass_conf = $_POST['confirm-password'];
     $email = $_POST['email'];
-    $email_conf = $_POST['email_confirm'];
+    $email_conf = $_POST['confirm_email'];
     $comments = $_POST['comments'];
 
     // Validation Code
@@ -112,11 +112,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                    value="<?php echo $uname ?>" required >
                                         </div>
                                         <div class="form-group">
-                                            <input type="email" name="email" id="register_email" tabindex="4" class="form-control" placeholder="Email Address"
+                                            <input type="email" name="email" id="email" tabindex="4" class="form-control" placeholder="Email Address"
                                                    value="<?php echo $email ?>" required >
                                         </div>
                                         <div class="form-group">
-                                            <input type="email" name="email_confirm" id="confirm_email" tabindex="4" class="form-control" placeholder="Confirm Email Address"
+                                            <input type="email" name="confirm_email" id="confirm_email" tabindex="4" class="form-control" placeholder="Confirm Email Address"
                                                    value="<?php echo $email_conf ?>" required >
                                         </div>
                                         <div class="form-group">

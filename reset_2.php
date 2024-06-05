@@ -29,6 +29,25 @@ if ($_GET['user']) {
     set_msg("No user with reset request");
     redirect("index.php");
 }
+// Checking if there is POST parameters
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // if it is, we update the password
+    try {
+        $pass = $_POST["password"];
+        $pass_conf = $_POST["password_confirm"];
+        if ($pass == $pass_conf) {
+            $stmnt = $pdo->prepare("UPDATE users SET password = :password WHERE username = :username");
+            $user_data = [':password' => password_hash($pass, PASSWORD_BCRYPT), ':username' => $username];
+            $stmnt->execute($user_data);
+            set_msg("Password successfully updated!");
+            redirect("login.php");
+        } else {
+            set_msg("Passwords do not match!");
+        }
+    } catch (PDOException $exception) {
+        echo "Error: ".$exception->getMessage();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -56,7 +75,7 @@ if ($_GET['user']) {
                                     <input type="password" name="password" id="password" tabindex="5" class="form-control" placeholder="Password" required>
                                 </div>
                                 <div class="form-group">
-                                    <input type="password" name="password_confirm" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required>
+                                    <input type="password" name="password_confirm" id="password_confirm" tabindex="6" class="form-control" placeholder="Confirm Password" required>
                                 </div>
                                 <div class="form-group">
                                     <div class="row">

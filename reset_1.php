@@ -13,8 +13,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // now we will send an e-mail
         $body = "Click on the link bellow to activate your account!\r\n
-                      http://{$_SERVER['SERVER_NAME']}/{$root_directory}/reset_2.php?user={$username}&code={$row['validationcode']}'>Reset your password";
-        send_email($row['email'], "Reset password", $body, $from_email, $reply_email);
+                      http://{$_SERVER['SERVER_NAME']}/{$root_directory}/reset_2.php?user={$username}&code={$row['validationcode']}\n Reset your password";
+        send_email($row['email'], "Reset password", $body, $from_email, $reply);
     } else {
         set_msg("User '{$username} was not found!'");
     }
