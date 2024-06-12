@@ -6,8 +6,14 @@
         <?php include "../includes/nav.php" ?>
 
         <div class="container">
+            <?php show_msg(); ?>
             <div class="row">
                 <div class="col-lg-6 col-lg-offset-3">
+                    <?php if (isset($error)) {
+                        foreach ($error as $msg) {
+                            echo "<h4 class='bg-danger text-center'>{$msg}</h4>";
+                        }
+                    } ?>
                 </div>
             </div>
             <div class="row">

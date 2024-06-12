@@ -6,6 +6,7 @@
         <?php include "../includes/nav.php" ?>
 
         <div class="container">
+            <?php show_msg(); ?>
             <h1 class="text-center">Admin</h1>
             <ul class="nav nav-tabs">
                   <li id="users" class="tab-label active"><a href="#">Users</a></li>
