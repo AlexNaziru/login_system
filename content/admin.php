@@ -122,7 +122,12 @@
         </div> <!--Container-->
         <?php include "../includes/footer.php" ?>
         <script>
-            gotoTab("users");
+            /* This function is for the group tabs, if the user inserts anything, it will be redirected on the tab he was on */
+            if (getParametersByName("tab")) {
+                gotoTab(getParametersByName("tab"))
+            } else {
+                gotoTab("users");
+            }
             $(".tab-label").click(function(){
                 gotoTab($(this).attr('id'));
             });
