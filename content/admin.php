@@ -96,15 +96,17 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>URL</th>
-                    <th>Group ID</th>
+                    <th>Group</th>
                     <th>Description</th>
                     </tr>";
                         foreach ($result as $row) {
+                            // We are going to look threw the db for the group_id and substitute it to the group name (to select it when making a group page)
+                            $group_row = return_field_data($pdo, "groups", "id", $row["group_id"]);
                             echo "<tr>
                       <td>{$row['id']}</td>
                       <td>{$row['name']}</td>
                       <td>{$row['url']}</td>
-                      <td>{$row['group_id']}</td>
+                      <td>{$group_row['name']}</td>
                       <td>{$row['description']}</td>             
                       </tr>"."<br>";
                         }

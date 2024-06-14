@@ -69,8 +69,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                    value="<?php echo $url?>" required >
                                         </div>
                                         <div class="form-group">
-                                            <input type="text" name="group_id" id="group_id" tabindex="3" class="form-control" placeholder="Group ID"
-                                                   value="<?php echo $group_id ?>" required >
+                                            <select name="group_id" id="group_id" class="form-control" required>
+                                                <!-- Dynamic group id's to select and not hardcode-->
+                                                <?php
+                                                    try {
+                                                        /* Querying the database */
+                                                        $result = $pdo->query("SELECT id, name FROM groups ORDER BY name");
+                                                        // Looping threw the results
+                                                        foreach ($result as $row) {
+                                                            echo "<option value={$row['id']}> {$row['name']}</option>";
+                                                        }
+                                                    } catch (PDOException $exception) {
+                                                        echo "Error: ".$exception->getMessage();
+                                                    }
+                                                ?>
+                                            </select>
                                         </div>
                                         <div class="form-group">
                                             <textarea name="description" id="description" tabindex="8" class="form-control"
