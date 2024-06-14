@@ -1,4 +1,41 @@
 <?php include("../includes/init.php");?>
+
+<!-- Taking info from the form and adding it to the database -->
+<?php
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $url = $_POST['url'];
+    $group_id = $_POST['group_id'];
+
+    if (strlen($name) < 3 ) {
+        $error[] = "Group name must be at least 3 characters!";
+    }
+    if (strlen($url) < 3 ) {
+        $error[] = "URL must be at least 3 characters.";
+    }
+    // Error check to see if the group ID they enter is valid
+    if (count_field_val($pdo, "groups", "id", $group_id) == 0) {
+        $error[] = "Group ID not available";
+    }
+    if (!isset($error)) {
+        try {
+            $stmnt = $pdo->prepare("INSERT INTO pages (name, description, url, group_id) VALUES (:name, :description, :url, :group_id)");
+            $stmnt->execute([":name"=>$name, ":description"=>$description, ":url"=>$url, ":group_id"=>$group_id]);
+            set_msg("Page '{$name}' has been added", "success");
+            redirect("admin.php?tab=pages ");
+        } catch (PDOException $exception) {
+            echo "Error: ".$exception->getMessage();
+        }
+    }
+} else {
+    $name = "";
+    $description = "";
+    $url = "";
+    $group_id = "";
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
     <?php include "../includes/header.php" ?>
@@ -24,16 +61,20 @@
                                 <div class="col-lg-12">
                                     <form id="register-form" method="post" role="form" >
                                         <div class="form-group">
-                                            <input type="text" name="name" id="name" tabindex="1" class="form-control" placeholder="Page Name" required >
+                                            <input type="text" name="name" id="name" tabindex="1" class="form-control" placeholder="Page Name"
+                                                   value="<?php echo $name ?>" required >
                                         </div>
                                         <div class="form-group">
-                                            <input type="text" name="url" id="url" tabindex="2" class="form-control" placeholder="Page URL" required >
+                                            <input type="text" name="url" id="url" tabindex="2" class="form-control" placeholder="Page URL"
+                                                   value="<?php echo $url?>" required >
                                         </div>
                                         <div class="form-group">
-                                            <input type="text" name="group_id" id="group_id" tabindex="3" class="form-control" placeholder="Group ID" required >
+                                            <input type="text" name="group_id" id="group_id" tabindex="3" class="form-control" placeholder="Group ID"
+                                                   value="<?php echo $group_id ?>" required >
                                         </div>
                                         <div class="form-group">
-                                            <textarea name="descr" id="descr" tabindex="8" class="form-control" placeholder="Description - Tell us about your organization ?"></textarea>
+                                            <textarea name="description" id="description" tabindex="8" class="form-control"
+                                                      placeholder="Description - Tell us about your organization ?"><?php echo $description ?></textarea>
                                         </div>
                                         <div class="form-group">
                                             <div class="row">
