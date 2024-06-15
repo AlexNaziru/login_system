@@ -71,7 +71,8 @@
                             echo "<tr>
                       <td>{$row['id']}</td>
                       <td>{$row['name']}</td>
-                      <td>{$row['description']}</td>             
+                      <td>{$row['description']}</td>   
+                      <td><a href='admin_manage_users.php?id={$row['id']}'>Manage Users</a></td>          
                       </tr>"."<br>";
                         }
                         echo "</table>";
