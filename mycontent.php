@@ -20,7 +20,43 @@ if (logged_in()) {
     show_msg();
     ?>
     <h1 class="text-center"> <?php echo $username;?>'s content</h1>
-    <p>"Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+    <?php // Adding content from more tables to display
+    try {
+        $sql = "SELECT u.username, g.name AS group_name, g.description AS group_description, ";
+        $sql.= "p.name AS page_name, p.description AS page_description, p.url ";
+        $sql.= "FROM users u ";
+        $sql.= "JOIN user_group_link gu ON u.id = gu.user_id ";
+        $sql.= "JOIN groups g ON gu.group_id = g.id ";
+        $sql.= "JOIN pages p ON g.id = p.group_id ";
+        $sql.= "WHERE u.username = '{$username}' ";
+        $sql.= "ORDER BY g.name";
+        $result = $pdo->query($sql);
+        if ($result->rowCount() > 0) {
+            echo "<table class='table'>";
+            echo "<tr>
+            <th>Group name</th>
+            <th>Group description</th>
+            <th>Page name</th>
+            <th>Page description</th>
+            <th>URL</th>
+            </tr>";
+            foreach ($result as $row) {
+                echo "<tr>
+                <td>{$row['group_name']}</td>
+                <td>{$row['group_description']}</td>
+                <td>{$row['page_name']}</td>
+                <td>{$row['page_description']}</td>
+                <td>{$row['url']}</td>
+                </tr>";
+            }
+            echo "</table>";
+        } else {
+            echo "<h4>No content for {$username} available to display!</h4>";
+        }
+    } catch (PDOException $exception) {
+        echo "There was an error on <br><br>".$exception->getMessage();
+    }
+    ?>
 </div> <!--Container-->
 
 <?php include "includes/footer.php" ?>
