@@ -1,7 +1,6 @@
 body {
     padding-top: 90px;
     color:#424242;
-    background-color: #E0E0E0;
 }
 
 a:visited {
@@ -30,4 +29,8 @@ nav a:hover {
 .navbar {
     color:#E0E0E0;
     background-color: #26A69A;
+}
+
+.table-group-header {
+    border: 2px solid #26A69A;
 }

@@ -30,22 +30,23 @@ if (logged_in()) {
         $sql .= "ORDER BY group_name ";
         $result = $pdo->query($sql);
         if ($result->rowCount() > 0) {
+            $prev_group = " ";
             echo "<table class='table'>";
-            echo "<tr>
-            <th>Group name</th>
-            <th>Group description</th>
-            <th>Page name</th>
-            <th>Page description</th>
-            <th>URL</th>
-            </tr>";
+
             foreach ($result as $row) {
+                if ($prev_group != $row['group_name']) {
+                    echo "<tr class='table-group-header'>
+                    <td>{$row['group_name']}</td>
+                    <td>{$row['group_description']}</td>
+                    <td> </td>
+                        </tr>";
+                }
                 echo "<tr>
-                <td>{$row['group_name']}</td>
-                <td>{$row['group_description']}</td>
-                <td>{$row['page_name']}</td>
+                <td> </td>
+                <td><a href='content/{$row['url']}'>{$row['page_name']}</a></td>
                 <td>{$row['page_description']}</td>
-                <td>{$row['url']}</td>
                 </tr>";
+                $prev_group = $row['group_name'];
             }
             echo "</table>";
         } else {
