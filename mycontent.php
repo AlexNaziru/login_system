@@ -22,14 +22,12 @@ if (logged_in()) {
     <h1 class="text-center"> <?php echo $username;?>'s content</h1>
     <?php // Adding content from more tables to display
     try {
-        $sql = "SELECT u.username, g.name AS group_name, g.description AS group_description, ";
-        $sql.= "p.name AS page_name, p.description AS page_description, p.url ";
-        $sql.= "FROM users u ";
-        $sql.= "JOIN user_group_link gu ON u.id = gu.user_id ";
-        $sql.= "JOIN groups g ON gu.group_id = g.id ";
-        $sql.= "JOIN pages p ON g.id = p.group_id ";
-        $sql.= "WHERE u.username = '{$username}' ";
-        $sql.= "ORDER BY g.name";
+        $sql = "SELECT u.username, g.name AS group_name, g.description AS group_description, p.name AS page_name, p.description AS page_description, p.url ";
+        $sql .= "FROM users u JOIN user_group_link gu ON u.id = gu.user_id ";
+        $sql .= "JOIN groups g ON gu.group_id = g.id ";
+        $sql .= "JOIN pages p ON g.id = p.group_id ";
+        $sql .= "WHERE username = '{$username}' ";
+        $sql .= "ORDER BY group_name ";
         $result = $pdo->query($sql);
         if ($result->rowCount() > 0) {
             echo "<table class='table'>";
