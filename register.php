@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             <input type="password" name="password" id="password" tabindex="5" class="form-control" placeholder="Password" required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" name="password_confirm" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required>
+                                            <input type="password" name="confirm-password" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required>
                                         </div>
                                         <div class="form-group">
                                             <textarea name="comments" id="comments" tabindex="7" class="form-control" placeholder="Comments">

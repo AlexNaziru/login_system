@@ -17,10 +17,11 @@
                 <?php
                 // the -> means there is a method after the object
                 try {
-                    $result = $pdo->query("SELECT firstname, lastname, username, email, active, joined, last_login FROM users ORDER BY username");
+                    $result = $pdo->query("SELECT id, firstname, lastname, username, email, active, joined, last_login FROM users ORDER BY username");
                     if ($result->rowCount() > 0) {
                         echo "<table class='table'>";
                         echo "<tr>
+                    <th>ID</th>
                     <th>Firstname</th>
                     <th>Lastname</th>
                     <th>Username</th>
@@ -36,6 +37,7 @@
                                 $active = "No";
                             }
                             echo "<tr>
+                      <td>{$row['id']}</td>
                       <td>{$row['firstname']}</td>
                       <td>{$row['lastname']}</td>
                       <td>{$row['username']}</td>
@@ -66,12 +68,19 @@
                     <th>ID</th>
                     <th>Name</th>
                     <th>Description</th>
+                    <th>Users</th>
+                    <th>Pages</th>
                     </tr>";
                         foreach ($result as $row) {
+                            // Showing numbers of user in each group
+                            $user_count = count_field_val($pdo, "user_group_link", "group_id", $row["id"]);
+                            $page_count = count_field_val($pdo, "pages", "group_id", $row["id"]);
                             echo "<tr>
                       <td>{$row['id']}</td>
                       <td>{$row['name']}</td>
-                      <td>{$row['description']}</td>   
+                      <td>{$row['description']}</td>  
+                      <td>{$user_count}</td>
+                      <td>{$page_count}</td> 
                       <td><a href='admin_manage_users.php?id={$row['id']}'>Manage Users</a></td>          
                       </tr>"."<br>";
                         }

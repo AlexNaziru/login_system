@@ -16,7 +16,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmnt = $pdo->prepare("INSERT INTO user_group_link (user_id, group_id) VALUES (:user_id, :group_id)");
         $stmnt->execute([":user_id"=>$user_id, ":group_id"=>$group_id]);
         set_msg("User '{$user_id}' has been added  to {$group_id}", "success");
-        redirect("admin.php?tab=groups ");
     } catch (PDOException $exception) {
         echo "Error: ".$exception->getMessage();
     }
@@ -32,11 +31,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php show_msg(); ?>
     <div class="row">
         <div class="col-lg-6 col-lg-offset-3">
-            <?php if (isset($error)) {
-                foreach ($error as $msg) {
-                    echo "<h4 class='bg-danger text-center'>{$msg}</h4>";
+            <?php
+            // the -> means there is a method after the object
+            try {
+                $result = $pdo->query("SELECT id, user_id FROM user_group_link 
+                                             WHERE group_id = {$group_id}");
+                if ($result->rowCount() > 0) {
+                    echo "<table class='table'>";
+                    echo "<tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    </tr>";
+                    foreach ($result as $row) {
+                        $user_row = return_field_data($pdo, "users", "id", $row['user_id']);
+                        echo "<tr>
+                      <td>{$user_row['id']}</td>
+                      <td>{$user_row['username']}</td>
+                      <td>{$user_row['lastname']}, {$user_row['firstname']}</td>
+                      </tr>"."<br>";
+                    }
+                    echo "</table>";
+                } else {
+                    echo "<h4>No users in this group table</h4>";
                 }
-            } ?>
+            } catch (PDOException $e) {
+                echo "Something went wrong<br><br>".$e->getMessage();
+            }
+
+            ?>
         </div>
     </div>
     <div class="row">
