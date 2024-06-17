@@ -4,6 +4,21 @@ include("../includes/init.php");?>
 <!-- Taking info from the form and adding it to the database -->
 <?php
 
+//If they are logged in, they can see this page
+if (logged_in()) {
+    $username = $_SESSION["username"];
+    // Checking to see if the user is a member of the group
+    if (!verify_user_group($pdo, $username, "Admin")) {
+        set_msg("User '{$username}' does not have permission to view this page");
+        redirect("../index.php");
+    }
+} else {
+    set_msg("Please log in and try again!");
+    // If they are not logged in, they won't
+    redirect("../index.php");
+}
+
+
 // We want to check if we submitted any POST data is getting the group id with the GET request
 if (isset($_GET['id'])) {
     $group_id = $_GET['id'];

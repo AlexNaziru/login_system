@@ -106,3 +106,24 @@ function validation_code($user, $pdo)
     }
 }
 
+// Verifying users if they are in a group
+function verify_user_group($pdo, $user, $group)
+{
+    $user_row = return_field_data($pdo, "users", "username", $user);
+    $user_id = $user_row['id'];
+    $group_row = return_field_data($pdo, "groups", "name", $group);
+    $group_id = $group_row['id'];
+    try {
+        $sql = "SELECT id FROM user_group_link WHERE user_id = {$user_id} AND group_id = {$group_id}";
+        $stmnt = $pdo->query($sql);
+        if ($stmnt->rowCount() > 0 ){
+            return true;
+        } else {
+            return false;
+        }
+    } catch (PDOException $exception) {
+        echo $exception->getMessage();
+        return false;
+    }
+}
+

@@ -5,6 +5,7 @@
 if (logged_in()) {
     $username = $_SESSION["username"];
 } else {
+    set_msg("Please log in and try again!");
     // If they are not logged in, they won't
     redirect("index.php");
 }
