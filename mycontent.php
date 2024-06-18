@@ -50,6 +50,10 @@ if (logged_in()) {
                 $prev_group = $row['group_name'];
             }
             echo "</table>";
+            // Allowing user to edit their profile
+            $row = return_field_data($pdo, "users", "username", $username);
+            $user_id = $row['id'];
+            echo "<a class='btn btn-success' href='content/admin_edit_user.php?id={$user_id}'>Edit profile</a>";
         } else {
             echo "<h4>No content for {$username} available to display!</h4>";
         }

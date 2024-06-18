@@ -25,7 +25,7 @@ if (logged_in()) {
 
         <div class="container">
             <?php show_msg(); ?>
-            <h1 class="text-center">Admin</h1>
+            <h1 class="text-center">Admin Dashboard</h1>
             <ul class="nav nav-tabs">
                   <li id="users" class="tab-label active"><a href="#">Users</a></li>
                   <li id="groups" class="tab-label"><a href="#">Groups</a></li>
@@ -67,6 +67,7 @@ if (logged_in()) {
                       <td>{$row['joined']}</td>
                       <td>{$row['last_login']}</td>
                       <td><a href='admin_deactivate_user.php?id={$row['id']}'>{$action} User</a></td>
+                      <td><a href='admin_edit_user.php?id={$row['id']}'>Edit</a></td>
                       </tr>"."<br>";
                         }
                         echo "</table>";
