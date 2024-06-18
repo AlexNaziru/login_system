@@ -109,20 +109,36 @@ function validation_code($user, $pdo)
 // Verifying users if they are in a group
 function verify_user_group($pdo, $user, $group)
 {
-    $user_row = return_field_data($pdo, "users", "username", $user);
-    $user_id = $user_row['id'];
-    $group_row = return_field_data($pdo, "groups", "name", $group);
-    $group_id = $group_row['id'];
     try {
-        $sql = "SELECT id FROM user_group_link WHERE user_id = {$user_id} AND group_id = {$group_id}";
-        $stmnt = $pdo->query($sql);
-        if ($stmnt->rowCount() > 0 ){
+        // Fetch user details
+        $user_row = return_field_data($pdo, "users", "username", $user);
+        if (!$user_row) {
+            throw new Exception("User '{$user}' not found.");
+        }
+        $user_id = $user_row['id'];
+
+        // Fetch group details
+        $group_row = return_field_data($pdo, "groups", "name", $group);
+        if (!$group_row) {
+            throw new Exception("Group '{$group}' not found.");
+        }
+        $group_id = $group_row['id'];
+
+        // Prepare and execute SQL query to check user-group linkage
+        $sql = "SELECT id FROM user_group_link WHERE user_id = :user_id AND group_id = :group_id";
+        $stmnt = $pdo->prepare($sql);
+        $stmnt->execute([':user_id' => $user_id, ':group_id' => $group_id]);
+
+        if ($stmnt->rowCount() > 0) {
             return true;
         } else {
             return false;
         }
     } catch (PDOException $exception) {
-        echo $exception->getMessage();
+        error_log('PDOException in verify_user_group(): ' . $exception->getMessage());
+        return false;
+    } catch (Exception $e) {
+        error_log('Exception in verify_user_group(): ' . $e->getMessage());
         return false;
     }
 }
