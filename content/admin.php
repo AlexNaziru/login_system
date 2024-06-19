@@ -68,7 +68,7 @@ if (logged_in()) {
                       <td>{$row['last_login']}</td>
                       <td><a href='admin_deactivate_user.php?id={$row['id']}'>{$action} User</a></td>
                       <td><a href='admin_edit_user.php?id={$row['id']}'>Edit</a></td>
-                      <td><a href='admin_delete_user.php?id={$row['id']}'>Delete</a></td>
+                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=users'>Delete</a></td>
                       </tr>"."<br>";
                         }
                         echo "</table>";
@@ -105,7 +105,8 @@ if (logged_in()) {
                       <td>{$row['description']}</td>  
                       <td>{$user_count}</td>
                       <td>{$page_count}</td> 
-                      <td><a href='admin_manage_users.php?id={$row['id']}'>Manage Users</a></td>          
+                      <td><a href='admin_manage_users.php?id={$row['id']}'>Manage Users</a></td>
+                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=groups'>Delete</a></td>          
                       </tr>"."<br>";
                         }
                         echo "</table>";
@@ -141,7 +142,8 @@ if (logged_in()) {
                       <td>{$row['name']}</td>
                       <td>{$row['url']}</td>
                       <td>{$group_row['name']}</td>
-                      <td>{$row['description']}</td>             
+                      <td>{$row['description']}</td>    
+                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=pages'>Delete</a></td>         
                       </tr>"."<br>";
                         }
                         echo "</table>";
@@ -158,6 +160,12 @@ if (logged_in()) {
         </div> <!--Container-->
         <?php include "../includes/footer.php" ?>
         <script>
+            // Confirm delete
+            $(".confirm-delete").click(function(e) {
+               if (!confirm("Are you sure you want to delete this record?")) {
+                    e.preventDefault();
+               }
+            });
             /* This function is for the group tabs, if the user inserts anything, it will be redirected on the tab he was on */
             if (getParametersByName("tab")) {
                 gotoTab(getParametersByName("tab"))

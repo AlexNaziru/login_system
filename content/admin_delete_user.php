@@ -14,15 +14,26 @@ if (logged_in()) {
 ?>
 
 <?php
-if (isset($_GET['id'])) {
-    $user_id = $_GET['id'];
+if (isset($_GET['id'])&&($_GET['tbl'])) {
+    $id = $_GET['id'];
+    $table = $_GET['tbl'];
     try {
-        $stmnt = $pdo->prepare("DELETE FROM users WHERE id = :id");
-        $stmnt->execute([':id'=>$user_id]);
-        // Cascade deleting
-        $stmnt = $pdo->prepare("DELETE FROM user_group_link WHERE user_id = :id");
-        $stmnt->execute([':id'=>$user_id]);
-        redirect("admin.php");
+        $stmnt = $pdo->prepare("DELETE FROM {$table} WHERE id = :id");
+        $stmnt->execute([':id'=>$id]);
+        // If the table is users
+        if ($table == "users") {
+            // Cascade deleting
+            $stmnt = $pdo->prepare("DELETE FROM user_group_link WHERE user_id = :id");
+            $stmnt->execute([':id'=>$id]);
+        }
+        if ($table == "groups") {
+            // Cascade deleting
+            $stmnt = $pdo->prepare("DELETE FROM user_group_link WHERE group_id = :id");
+            $stmnt->execute([':id'=>$id]);
+            $stmnt = $pdo->prepare("DELETE FROM pages WHERE group_id = :id");
+            $stmnt->execute([':id'=>$id]);
+        }
+        redirect("admin.php?tab={$table}");
     } catch (PDOException $e) {
         echo $e->getMessage();
     }
