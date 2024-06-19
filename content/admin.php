@@ -106,7 +106,8 @@ if (logged_in()) {
                       <td>{$user_count}</td>
                       <td>{$page_count}</td> 
                       <td><a href='admin_manage_users.php?id={$row['id']}'>Manage Users</a></td>
-                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=groups'>Delete</a></td>          
+                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=groups'>Delete</a></td> 
+                      <td><a href='admin_edit_group.php?id={$row['id']}'>Edit</a></td>         
                       </tr>"."<br>";
                         }
                         echo "</table>";
@@ -143,7 +144,8 @@ if (logged_in()) {
                       <td>{$row['url']}</td>
                       <td>{$group_row['name']}</td>
                       <td>{$row['description']}</td>    
-                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=pages'>Delete</a></td>         
+                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=pages'>Delete</a></td>  
+                      <td><a href='admin_edit_page.php?id={$row['id']}'>Edit</a></td>       
                       </tr>"."<br>";
                         }
                         echo "</table>";
