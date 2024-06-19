@@ -68,6 +68,7 @@ if (logged_in()) {
                       <td>{$row['last_login']}</td>
                       <td><a href='admin_deactivate_user.php?id={$row['id']}'>{$action} User</a></td>
                       <td><a href='admin_edit_user.php?id={$row['id']}'>Edit</a></td>
+                      <td><a href='admin_delete_user.php?id={$row['id']}'>Delete</a></td>
                       </tr>"."<br>";
                         }
                         echo "</table>";
