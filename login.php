@@ -24,6 +24,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (password_verify($password, $user_data["password"])) {
                 set_msg("Logged in successfully", "success");
 
+                // Update last_login date
+                update_login_date($pdo, $username);
+
                 // Setting our session variable
                 $_SESSION["username"] = $username;
 

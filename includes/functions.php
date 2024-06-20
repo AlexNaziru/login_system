@@ -106,6 +106,17 @@ function validation_code($user, $pdo)
     }
 }
 
+// Update last login date
+function update_login_date($pdo, $user)
+{
+        try {
+            $stmnt = $pdo->prepare("UPDATE users SET last_login = current_date WHERE username = :username");
+            $stmnt->execute([':username'=>$user]);
+    } catch (PDOException $e) {
+            return $e->getMessage();
+    }
+}
+
 // Verifying users if they are in a group
 function verify_user_group($pdo, $user, $group)
 {

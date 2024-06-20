@@ -33,6 +33,15 @@ if (isset($_GET['id'])&&($_GET['tbl'])) {
             $stmnt = $pdo->prepare("DELETE FROM pages WHERE group_id = :id");
             $stmnt->execute([':id'=>$id]);
         }
+        // When we remove a user from a group
+        if ($table == "user_group_link") {
+            if (isset($_GET['group'])) {
+                $group_id = $_GET['group'];
+                redirect("admin_manage_users.php?id={$group_id}");
+            } else {
+                redirect("admin.php?tab=group");
+            }
+        }
         redirect("admin.php?tab={$table}");
     } catch (PDOException $e) {
         echo $e->getMessage();

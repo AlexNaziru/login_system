@@ -67,6 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                       <td>{$user_row['id']}</td>
                       <td>{$user_row['username']}</td>
                       <td>{$user_row['lastname']}, {$user_row['firstname']}</td>
+                      <td><a class='confirm-delete' href='admin_delete_user.php?id={$row['id']}&tbl=user_group_link&group={$group_id}'>Delete</a></td>
                       </tr>"."<br>";
                     }
                     echo "</table>";
@@ -79,6 +80,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             ?>
         </div>
+        <script>
+            // Confirm delete
+            $(".confirm-delete").click(function(e) {
+                if (!confirm("Are you sure you want to delete this record?")) {
+                    e.preventDefault();
+                }
+            });
+        </script>
     </div>
     <div class="row">
         <div class="col-md-6 col-md-offset-3">
