@@ -96,7 +96,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             $result = $pdo->query("SELECT id, name FROM groups ORDER BY name");
                                             // Looping threw the results
                                             foreach ($result as $row) {
-                                                echo "<option value={$row['id']}> {$row['name']}</option>";
+                                                // Show as default the group the page is set up
+                                                if ($row['id'] == $group_id) {
+                                                    $selected = " selected";
+                                                } else {
+                                                    $selected = "";
+                                                }
+                                                echo "<option value={$row['id']}{$selected}> {$row['name']}</option>";
                                             }
                                         } catch (PDOException $exception) {
                                             echo "Error: ".$exception->getMessage();
