@@ -52,8 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php
             // the -> means there is a method after the object
             try {
-                $result = $pdo->query("SELECT id, user_id FROM user_group_link 
-                                             WHERE group_id = {$group_id}");
+                $result = $pdo->query("SELECT id, user_id FROM user_group_link WHERE group_id = {$group_id}");
                 if ($result->rowCount() > 0) {
                     echo "<table class='table'>";
                     echo "<tr>
@@ -104,7 +103,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             $result = $pdo->query("SELECT id, username FROM users ORDER BY username");
                                             // Looping threw the results
                                             foreach ($result as $row) {
-                                                echo "<option value={$row['id']}> {$row['username']}</option>";
+                                                // Checking to see if the user is already assigned to a group
+                                                $user_row = return_field_data($pdo, "users", "id", $row['id']);
+                                                $group_row = return_field_data($pdo, "groups", "id", $group_id);
+                                                if (!verify_user_group($pdo, $user_row['username'], $group_row['name'])) {
+                                                    echo "<option value={$row['id']}> {$row['username']}</option>";
+                                                }
                                             }
                                         } catch (PDOException $exception) {
                                             echo "Error: ".$exception->getMessage();

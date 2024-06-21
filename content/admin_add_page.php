@@ -18,7 +18,6 @@ if (logged_in()) {
     redirect("../index.php");
 }
 ?>
-?>
 
 <!-- Taking info from the form and adding it to the database -->
 <?php

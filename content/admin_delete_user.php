@@ -41,8 +41,9 @@ if (isset($_GET['id'])&&($_GET['tbl'])) {
             } else {
                 redirect("admin.php?tab=group");
             }
+        } else {
+            redirect("admin.php?tab={$table}");
         }
-        redirect("admin.php?tab={$table}");
     } catch (PDOException $e) {
         echo $e->getMessage();
     }

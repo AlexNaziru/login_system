@@ -52,10 +52,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Sending verification e-mail
             $body = "Click on the link bellow to activate your account!\r\n
                       http://{$_SERVER['SERVER_NAME']}/{$root_directory}/activate.php?user={$uname}&code={$vcode}'>Activate account";
-            send_email($email, "Activate User", $body, $from_email, $reply_email);
+            send_email($email, "Activate User", $body, $from_email, $reply);
             // Redirecting user after a successful registration
             $_SESSION['message'] = "User successfully registered";
-            redirect("index.php");
+            //redirect("index.php");
         } catch (PDOException $exception) {
             echo "Error: " . $exception->getMessage();
         }
