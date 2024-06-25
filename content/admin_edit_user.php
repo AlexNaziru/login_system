@@ -1,19 +1,6 @@
 <?php include ("../includes/init.php"); ?>
 
 <?php
-if (logged_in()) {
-    $username = $_SESSION['username'];
-    if (verify_user_group($pdo, $username, "Admin")) {
-        set_msg("User '{$username}' does not have permission to view this page");
-        redirect("../index.php");
-    }
-} else {
-    set_msg("Please log in and try again");
-    redirect("../index.php");
-}
-?>
-
-<?php
 // This just fills up the edit form with user data based on it's id
 if (isset($_GET['id'])) {
     $user_id = $_GET['id'];
@@ -29,6 +16,25 @@ if (isset($_GET['id'])) {
 } else {
     redirect("admin.php");
 }
+?>
+
+<?php
+if (logged_in()) {
+    $username = $_SESSION['username'];
+    if (verify_user_group($pdo, $username, "Admin")) {
+        if ($username!=$row['username']) {
+            set_msg("User '{$username}' does not have permission to view this page");
+            redirect("../index.php");
+        }
+    }
+} else {
+    set_msg("Please log in and try again");
+    redirect("../index.php");
+}
+?>
+
+
+<?php
 // Editing the existing information and saving it to our db
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fname = $_POST['firstname'];

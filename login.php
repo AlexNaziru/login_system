@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["username"] = $username;
 
                 // If remember is set to on we will set a cookie with all the info to remember the ON value
-                if ($remember = "on") {
+                if ($remember == "on") {
                     // key, value and a time in unix (here is a day, bc there are 86400 secs/day, if you want for a week, we put *7)
                     setcookie("username", $username, time() + 86400, "/", null, false, true);
                 }  # "/" root directory - means the cookie will be accessible from anywhere of our site. The last one is httpOnly to true
