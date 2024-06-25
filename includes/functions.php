@@ -67,6 +67,15 @@ function send_email($to, $subject, $body, $from, $reply)
 
 // ************ Database Functions ****************
 
+# Protection against XSS Injection or Cross site scripting
+function clean_array($array)
+{ // Looping threw
+    foreach ($array as $key=>$value) {
+        $array[$key] = htmlentities($value);
+    }
+    return $array;
+}
+
 function count_field_val($pdo, $tbl, $fld, $value)
 {
     try {
