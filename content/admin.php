@@ -99,6 +99,9 @@ if (logged_in()) {
                             // Showing numbers of user in each group
                             $user_count = count_field_val($pdo, "user_group_link", "group_id", $row["id"]);
                             $page_count = count_field_val($pdo, "pages", "group_id", $row["id"]);
+                            // Before we echo, we need to clean it and transform them into html entities and will be safe to display
+                            // in order to protect it from XSS injection
+                            $row = clean_array($row);
                             echo "<tr>
                       <td>{$row['id']}</td>
                       <td>{$row['name']}</td>
