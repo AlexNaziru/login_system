@@ -404,14 +404,25 @@ if (logged_in()) {
                 
                 fgpDrawnItems = new L.FeatureGroup();
                 fgpDrawnItems.addTo(mymap);
-                
-                lyrEagleNests = L.geoJSON.ajax('data/wildlife_eagle.geojson', {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
+
+                // Here we are loading the same data from bellow but from the postGIS database use AJAX
+                $.ajax({url: load_eagle.php,
+                        success: function (response){
+                            jsonEagle = JSON.parse(response);
+                            lyrEagleNests = L.geoJSON(jsonEagle, {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
+                            arEagleIDs.sort(function(a,b){return a-b});
+                            $("#txtFindEagle").autocomplete({
+                                source:arEagleIDs
+                            });
+                        }})
+                // Here we are loading data from a static file
+                /*lyrEagleNests = L.geoJSON.ajax('data/wildlife_eagle.geojson', {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
                 lyrEagleNests.on('data:loaded', function(){
                     arEagleIDs.sort(function(a,b){return a-b});
                     $("#txtFindEagle").autocomplete({
                         source:arEagleIDs
                     });
-                });
+                });*/
                 
                 lyrMarkerCluster = L.markerClusterGroup();
                 lyrRaptorNests = L.geoJSON.ajax('data/wildlife_raptor.geojson', {pointToLayer:returnRaptorMarker, filter:filterRaptor});

@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (verify_user_group($pdo, $username, "Admin")) {
+    if (!verify_user_group($pdo, $username, "Admin")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
