@@ -405,16 +405,10 @@ if (logged_in()) {
                 fgpDrawnItems = new L.FeatureGroup();
                 fgpDrawnItems.addTo(mymap);
 
+                /*** Loading our data ***/
                 // Here we are loading the same data from bellow but from the postGIS database use AJAX
-                $.ajax({url: load_eagle.php,
-                        success: function (response){
-                            jsonEagle = JSON.parse(response);
-                            lyrEagleNests = L.geoJSON(jsonEagle, {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
-                            arEagleIDs.sort(function(a,b){return a-b});
-                            $("#txtFindEagle").autocomplete({
-                                source:arEagleIDs
-                            });
-                        }})
+                refreshEagles();
+
                 // Here we are loading data from a static file
                 /*lyrEagleNests = L.geoJSON.ajax('data/wildlife_eagle.geojson', {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
                 lyrEagleNests.on('data:loaded', function(){
@@ -472,12 +466,7 @@ if (logged_in()) {
                 };
                 
                 objOverlays = {
-                    "Client Linears":lyrClientLines,
-                    "Burrowing Owl Habitat":lyrBUOWL,
-                    "Eagle Nest":lyrEagleNests,
-                    "Raptor Nest":lyrMarkerCluster,
-                    "GBH Rookeries":lyrGBH,
-                    "Drawn Items":fgpDrawnItems
+
                 };
                 
                 ctlLayers = L.control.layers(objBasemaps, objOverlays).addTo(mymap);
@@ -870,9 +859,31 @@ if (logged_in()) {
 
             // Radio buttons
             $("input[name=fltEagle]").click(function () {
-               arEagleIDs= [];
-               lyrEagleNests.refresh();
+                refreshEagles();
             });
+
+            function refreshEagles() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_eagle"},
+                    type: "GET",
+                    success: function (response){
+                        // Reset the eagle id layer, it has to be empty before we reload the data
+                        arEagleIDs = [];
+                        jsonEagles = JSON.parse(response);
+                        if (lyrEagleNests) {
+                            ctlLayers.removeLayer(lyrEagleNests);
+                            lyrEagleNests.remove();
+                        }
+                        lyrEagleNests = L.geoJSON(jsonEagles, {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
+                        // Layer control
+                        ctlLayers.addOverlay(lyrEagleNests, "Eagle Nests")
+                        arEagleIDs.sort(function(a,b){return a-b});
+                        $("#txtFindEagle").autocomplete({
+                            source:arEagleIDs
+                        });
+                    }
+                });
+            }
             
             //  *********** Raptor Functions
 
