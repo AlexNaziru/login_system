@@ -408,6 +408,7 @@ if (logged_in()) {
                 /*** Loading our data ***/
                 // Here we are loading the same data from bellow but from the postGIS database use AJAX
                 refreshEagles();
+                refreshRaptors();
 
                 // Here we are loading data from a static file
                 /*lyrEagleNests = L.geoJSON.ajax('data/wildlife_eagle.geojson', {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
@@ -418,16 +419,7 @@ if (logged_in()) {
                     });
                 });*/
                 
-                lyrMarkerCluster = L.markerClusterGroup();
-                lyrRaptorNests = L.geoJSON.ajax('data/wildlife_raptor.geojson', {pointToLayer:returnRaptorMarker, filter:filterRaptor});
-                lyrRaptorNests.on('data:loaded', function(){
-                    arRaptorIDs.sort(function(a,b){return a-b});
-                    $("#txtFindRaptor").autocomplete({
-                        source:arRaptorIDs
-                    });
-                    lyrMarkerCluster.addLayer(lyrRaptorNests);
-                    lyrMarkerCluster.addTo(mymap);
-                });
+
 
                 lyrClientLinesBuffer = L.featureGroup();
                 lyrClientLines = L.geoJSON.ajax('data/client_lines.geojson', {style:styleClientLinears, onEachFeature:processClientLinears,
@@ -864,8 +856,8 @@ if (logged_in()) {
 
             function refreshEagles() {
                 $.ajax({url: "load_data.php",
-                    data: {tbl: "dj_eagle"},
-                    type: "GET",
+                    data: {tbl: "dj_eagle", flds: "id, status, nest_id"},
+                    type: "POST",
                     success: function (response){
                         // Reset the eagle id layer, it has to be empty before we reload the data
                         arEagleIDs = [];
@@ -892,8 +884,8 @@ if (logged_in()) {
             });
             
             function returnRaptorMarker(json, latlng){
-                var att = json.properties;
-                arRaptorIDs.push(att.Nest_ID.toString());
+                let att = json.properties;
+                arRaptorIDs.push(att.nest_id.toString());
                 switch (att.recentspecies) {
                     case 'Red-tail Hawk':
                         var radRaptor = 533;
@@ -916,7 +908,7 @@ if (logged_in()) {
                         var optRaptor = {radius:radRaptor, color:'deeppink', fillColor:"cyan", fillOpacity:0.5, dashArray:"2,8"};
                         break;
                 }
-                return L.circle(latlng, optRaptor).bindPopup("<h4>Raptor Nest: "+att.Nest_ID+"</h4>Status: "+att.recentstatus+"<br>Species: "+att.recentspecies+"<br>Last Survey: "+att.lastsurvey);
+                return L.circle(latlng, optRaptor).bindPopup("<h4>Raptor Nest: "+att.nest_id+"</h4>Status: "+att.recentstatus+"<br>Species: "+att.recentspecies+"<br>Last Survey: "+att.lastsurvey);
             }
                 
             $("#txtFindRaptor").on('keyup paste', function(){
@@ -926,7 +918,7 @@ if (logged_in()) {
             
             $("#btnFindRaptor").click(function(){
                 var val = $("#txtFindRaptor").val();
-                var lyr = returnLayerByAttribute(lyrRaptorNests,'Nest_ID',val);
+                var lyr = returnLayerByAttribute(lyrRaptorNests,'nest_id',val);
                 if (lyr) {
                     if (lyrSearch) {
                         lyrSearch.remove();
@@ -971,9 +963,45 @@ if (logged_in()) {
             });
 
             $("input[name=fltRaptor]").click(function () {
-                arRaptorIDs = [];
-                lyrRaptorNests.refresh();
-            })
+                refreshRaptors();
+            });
+
+            function refreshRaptors() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"},
+                    type: "POST",
+                    success: function (response){
+                        // Reset the eagle id layer, it has to be empty before we reload the data
+                        arRaptorIDs = [];
+                        jsonRaptor = JSON.parse(response);
+                        if (lyrMarkerCluster) {
+                            ctlLayers.removeLayer(lyrMarkerCluster);
+                            lyrMarkerCluster.remove();
+                            lyrRaptorNests.remove();
+                        }
+                        lyrRaptorNests = L.geoJSON(jsonRaptor, {pointToLayer:returnRaptorMarker, filter:filterRaptor}).addTo(mymap);
+
+                        arRaptorIDs.sort(function(a,b){return a-b});
+                        $("#txtFindRaptor").autocomplete({
+                            source:arRaptorIDs
+                        });
+                        lyrMarkerCluster = L.markerClusterGroup();
+                        lyrMarkerCluster.addLayer(lyrRaptorNests);
+                        lyrMarkerCluster.addTo(mymap);
+                        // Layer control
+                        ctlLayers.addOverlay(lyrMarkerCluster, "Raptor Nests")
+                    }
+                });
+            }
+
+            /*lyrRaptorNests = L.geoJSON.ajax('data/wildlife_raptor.geojson', {pointToLayer:returnRaptorMarker, filter:filterRaptor});
+            lyrRaptorNests.on('data:loaded', function(){
+                arRaptorIDs.sort(function(a,b){return a-b});
+                $("#txtFindRaptor").autocomplete({
+                    source:arRaptorIDs
+                });
+
+            });*/
             
             //  *********  jQuery Event Handlers  ************
 

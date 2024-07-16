@@ -1,11 +1,21 @@
 <?php
 // Getting all the postGIS data
-if (isset($_GET["tbl"])) {
-    $table = $_GET["tbl"];
-    if (isset($_GET["flds"])) {
-        $fields = $_GET["flds"];
+if (isset($_POST["tbl"])) {
+    $table = $_POST["tbl"];
+    if (isset($_POST["flds"])) {
+        $fields = $_POST["flds"];
     } else {
         $fields = "*";
+    }
+    if (isset($_POST["where"])) {
+        $where = " WHERE ".$_POST["where"];
+    } else {
+        $where = "";
+    }
+    if (isset($_POST["order"])) {
+        $order = " ORDER BY ".$_POST["order"];
+    } else {
+        $order = "";
     }
     // PDO for PostgreSQL connection
     $dsn = "pgsql:host=localhost;dbname=login;port=5432";
@@ -17,7 +27,7 @@ if (isset($_GET["tbl"])) {
     $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
 
 // Loading the postGIS eagle data
-    $result = $pdo->query("SELECT {$fields}, st_asgeojson(geom, 5) AS geojson FROM {$table};");
+    $result = $pdo->query("SELECT {$fields}, st_asgeojson(geom, 5) AS geojson FROM {$table}{$where}{$order};");
 // Putting all the features into an array
     $features = [];
     foreach ($result AS $row) {
