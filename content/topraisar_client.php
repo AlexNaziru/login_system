@@ -136,6 +136,7 @@ if (logged_in()) {
             <button id='btnLocate' class='btn btn-primary btn-block'>Locate</button><br>
             <!-- Map Legend -->
             <button id="btnShowLegend" class="btn btn-success btn-block ">Show Legend</button>
+            <button id="btnTransparent" class="btn btn-warning btn-block ">Make Polygons Transparent</button>
             <div id="legend">
                 <div id="lgndLinearProjects">
                     <h4 class="text-center">Linear Projects - Legend <i id="btnLinearProjects" class="fa fa-server"></i></h4>
@@ -221,7 +222,7 @@ if (logged_in()) {
             </div>
             <div id="divProject" class="col-xs-12">
                 <div id="divProjectLabel" class="text-center col-xs-12">
-                    <h4 id="lblProject">Linear Projects</h4>
+                    <h4 id="lblProject">Linear Projects <button id="btnRefreshLinear" class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
                 </div>
                 <div id="divProjectError" class="errorMsg col-xs-12"></div>
                 <div id="divFindProject" class="form-group has-error">
@@ -253,7 +254,7 @@ if (logged_in()) {
             </div>
             <div id="divBUOWL" class="col-xs-12">
                 <div id="divBUOWLLabel" class="text-center col-xs-12">
-                    <h4 id="lblBUOWL">BUOWL Habitat</h4>
+                    <h4 id="lblBUOWL">BUOWL Habitat <button id="btnRefreshBUOWL"class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
                 </div>
                 <div id="divBUOWLError" class="errorMsg col-xs-12"></div>
                 <div id="divFindBUOWL" class="form-group has-error">
@@ -279,7 +280,7 @@ if (logged_in()) {
             </div>
             <div id="divEagle" class="col-xs-12">
                 <div id="divEagleLabel" class="text-center col-xs-12">
-                    <h4 id="lblEagle">Eagle Nests</h4>
+                    <h4 id="lblEagle">Eagle Nests <button id="btnRefreshEagles" class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
                 </div>
                 <div id="divEagleError" class="errorMsg col-xs-12"></div>
                 <div id="divFindEagle" class="form-group has-error">
@@ -305,7 +306,7 @@ if (logged_in()) {
             </div>
             <div id="divRaptor" class="col-xs-12">
                 <div id="divRaptorLabel" class="text-center col-xs-12">
-                    <h4 id="lblRaptor">Raptor Nests</h4>
+                    <h4 id="lblRaptor">Raptor Nests <button id="btnRefreshRaptors"class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
                 </div>
                 <div id="divRaptorError" class="errorMsg col-xs-12"></div>
                 <div id="divFindRaptor" class="form-group has-error">
@@ -648,6 +649,12 @@ if (logged_in()) {
                 refreshBUOWL();
             });
 
+            // Refreshing the server
+            $("#btnRefreshBUOWL").click(function () {
+                alert("Refreshing BUOWL");
+                refreshBUOWL();
+            });
+
             function refreshBUOWL() {
                 $.ajax({url: "load_data.php",
                     data: {tbl: "dj_buowl", flds: "id, habitat, hist_occup, recentstatus, habitat_id"},
@@ -799,6 +806,12 @@ if (logged_in()) {
                 refreshLinears();
             });
 
+            // Refreshing the server
+            $("#btnRefreshLinear").click(function () {
+                alert("Refreshing Linears");
+                refreshLinears();
+            });
+
             function refreshLinears() {
                 $.ajax({url: "load_data.php",
                     data: {tbl: "dj_linear_projects", flds: "id, type, row_width, project"},
@@ -895,6 +908,12 @@ if (logged_in()) {
 
             // Radio buttons
             $("input[name=fltEagle]").click(function () {
+                refreshEagles();
+            });
+
+            // Refreshing the server
+            $("#btnRefreshEagles").click(function () {
+                alert("Refreshing Eagles");
                 refreshEagles();
             });
 
@@ -1010,6 +1029,12 @@ if (logged_in()) {
                 refreshRaptors();
             });
 
+            // Refreshing the server
+            $("#btnRefreshRaptors").click(function () {
+                alert("Refreshing Raptors");
+                refreshRaptors();
+            });
+
             function refreshRaptors() {
                 $.ajax({url: "load_data.php",
                     data: {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"},
@@ -1070,6 +1095,26 @@ if (logged_in()) {
             $("#btnShowLegend").click(function () {
                 $("#legend").toggle();
             });
+
+            // Transparent polygons
+            $("#btnTransparent").click(function () {
+                // This toggles fill to unfill the polygons
+                if ($("#btnTransparent").html() == "Fill Polygons") {
+                    lyrRaptorNests.setStyle({fillOpacity: 0.5});
+                    lyrEagleNests.setStyle({fillOpacity: 0.5});
+                    lyrBUOWL.setStyle({fillOpacity: 0.5});
+                    lyrGBH.setStyle({fillOpacity: 0.5});
+                    // Make them filled again
+                    $("#btnTransparent").html("Make Polygons Transparent")
+                } else {
+                    lyrRaptorNests.setStyle({fillOpacity: 0});
+                    lyrEagleNests.setStyle({fillOpacity: 0});
+                    lyrBUOWL.setStyle({fillOpacity: 0});
+                    lyrGBH.setStyle({fillOpacity: 0});
+                    // Make them filled again
+                    $("#btnTransparent").html("Fill Polygons")
+                }
+            })
             
             //  ***********  General Functions *********
             
