@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -409,6 +409,8 @@ if (logged_in()) {
                 // Here we are loading the same data from bellow but from the postGIS database use AJAX
                 refreshEagles();
                 refreshRaptors();
+                refreshLinears();
+                refreshBUOWL();
 
                 // Here we are loading data from a static file
                 /*lyrEagleNests = L.geoJSON.ajax('data/wildlife_eagle.geojson', {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
@@ -418,32 +420,6 @@ if (logged_in()) {
                         source:arEagleIDs
                     });
                 });*/
-                
-
-
-                lyrClientLinesBuffer = L.featureGroup();
-                lyrClientLines = L.geoJSON.ajax('data/client_lines.geojson', {style:styleClientLinears, onEachFeature:processClientLinears,
-                filter:filterClientLines}).addTo(mymap);
-                lyrClientLines.on('data:loaded', function(){
-                    arProjectIDs.sort(function(a,b){return a-b});
-                    $("#txtFindProject").autocomplete({
-                        source:arProjectIDs
-                    });
-                    lyrClientLinesBuffer.addTo(mymap);
-                    lyrClientLines.bringToFront();
-                });
-                
-                lyrBUOWL = L.geoJSON.ajax('data/wildlife_buowl.geojson', {style:styleBUOWL, onEachFeature:processBUOWL, filter:filterBUOWL}).addTo(mymap);
-                lyrBUOWL.on('data:loaded', function(){
-                    arHabitatIDs.sort(function(a,b){return a-b});
-                    $("#txtFindBUOWL").autocomplete({
-                        source:arHabitatIDs
-                    });
-                    // Radius
-                    jsonBUOWLbuffer = turf.buffer(lyrBUOWL.toGeoJSON(), 0.3, "kilometers");
-                    lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {style:{color: "yellow", dashArray: "5,5", fillOpacity: 0}}).addTo(mymap);
-                    lyrBUOWL.bringToFront();
-                });
                 
                 lyrGBH = L.geoJSON.ajax('data/wildlife_gbh.geojson', {style:{color:'fuchsia'}}).bindTooltip("GBH Nesting Area").addTo(mymap);
                 
@@ -647,7 +623,7 @@ if (logged_in()) {
                     lyrSearch = L.geoJSON(lyr.toGeoJSON(), {style:{color:'red', weight:10, opacity:0.5, fillOpacity:0}}).addTo(mymap);
                     mymap.fitBounds(lyr.getBounds().pad(1));
                     var att = lyr.feature.properties;
-                    $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: "+att.habitat+"</h5><h5>Historically Occupied: "+att.hist_occup+"</h5><h5>Recent Status: "+att.recentstatus+"</h5>");
+                    $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: "+att.habitat_id+"</h5><h5>Historically Occupied: "+att.hist_occup+"</h5><h5>Recent Status: "+att.recentstatus+"</h5>");
                     $("#divBUOWLError").html("");
 
                     // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
@@ -663,9 +639,48 @@ if (logged_in()) {
             });
 
             $("input[name=fltBUOWL]").click(function () {
-                arHabitatIDs = [];
-                lyrBUOWL.refresh();
-            })
+                refreshBUOWL();
+            });
+
+            function refreshBUOWL() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_buowl", flds: "id, habitat, hist_occup, recentstatus, habitat_id"},
+                    type: "POST",
+                    success: function (response){
+                        // Reset the eagle id layer, it has to be empty before we reload the data
+                        arHabitatIDs = [];
+                        jsonBUOWL = JSON.parse(response);
+                        if (lyrBUOWL) {
+                            ctlLayers.removeLayer(lyrBUOWL);
+                            lyrBUOWL.remove();
+                            lyrBUOWLbuffer.remove();
+                        }
+                        lyrBUOWL = L.geoJSON(jsonBUOWL, {style:styleBUOWL, onEachFeature:processBUOWL, filter:filterBUOWL}).addTo(mymap);
+                        // Layer control
+                        ctlLayers.addOverlay(lyrBUOWL, "Burrowing Owl Habitat")
+                        arHabitatIDs.sort(function(a,b){return a-b});
+                        $("#txtFindBUOWL").autocomplete({
+                            source:arHabitatIDs
+                        });
+                        // Radius
+                        jsonBUOWLbuffer = turf.buffer(lyrBUOWL.toGeoJSON(), 0.3, "kilometers");
+                        lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {style:{color: "yellow", dashArray: "5,5", fillOpacity: 0}}).addTo(mymap);
+                        lyrBUOWL.bringToFront();
+                    }
+                });
+            }
+
+            /*lyrBUOWL = L.geoJSON.ajax('data/wildlife_buowl.geojson', {style:styleBUOWL, onEachFeature:processBUOWL, filter:filterBUOWL}).addTo(mymap);
+            lyrBUOWL.on('data:loaded', function(){
+                arHabitatIDs.sort(function(a,b){return a-b});
+                $("#txtFindBUOWL").autocomplete({
+                    source:arHabitatIDs
+                });
+                // Radius
+                    jsonBUOWLbuffer = turf.buffer(lyrBUOWL.toGeoJSON(), 0.3, "kilometers");
+                    lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {style:{color: "yellow", dashArray: "5,5", fillOpacity: 0}}).addTo(mymap);
+                    lyrBUOWL.bringToFront();
+            });*/
             
             // ************ Client Linears **********
 
@@ -705,9 +720,9 @@ if (logged_in()) {
             function processClientLinears(json, lyr) {
                 let att;
                 att = json.properties;
-                lyr.bindTooltip("<h4>Linear Project: "+att.Project+"</h4>Type: "+att.type+"<br>ROW Width: "+att.row_width
+                lyr.bindTooltip("<h4>Linear Project: "+att.project+"</h4>Type: "+att.type+"<br>ROW Width: "+att.row_width
                 +"<br>Length: "+returnMultiLength(lyr.getLatLngs()).toFixed(0));
-                arProjectIDs.push(att.Project.toString());
+                arProjectIDs.push(att.project.toString());
                 const jsonBuffer = turf.buffer(json, att.row_width / 1000, "kilometers");
                 const lyrBuffer = L.geoJSON(jsonBuffer, {style: {color: "gray", dashArray: "5,5"}});
                 lyrClientLinesBuffer.addLayer(lyrBuffer);
@@ -756,7 +771,7 @@ if (logged_in()) {
             
             $("#btnFindProject").click(function(){
                 var val = $("#txtFindProject").val();
-                var lyr = returnLayerByAttribute(lyrClientLines,'Project',val);
+                var lyr = returnLayerByAttribute(lyrClientLines,'project',val);
                 if (lyr) {
                     if (lyrSearch) {
                         lyrSearch.remove();
@@ -787,9 +802,56 @@ if (logged_in()) {
                 $("input[name=fltProject]").prop("checked", false);
             });
             $("#btnProjectFilter").click(function () {
-                arProjectIDs = [];
-                lyrClientLines.refresh();
+                refreshLinears();
             });
+
+            function refreshLinears() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_linear_projects", flds: "id, type, row_width, project"},
+                    type: "POST",
+                    success: function (response){
+                        // Reset the eagle id layer, it has to be empty before we reload the data
+                        arProjectIDs = [];
+                        try {
+                            jsonLinears = JSON.parse(response);
+                        } catch (e) {
+                            console.error("Error parsing JSON:", e);
+                            console.error("Response:", response);
+                            return; // Exit the function if JSON parsing fails
+                        }
+
+                        if (lyrClientLines) {
+                            ctlLayers.removeLayer(lyrClientLines);
+                            lyrClientLines.remove();
+                            lyrClientLinesBuffer.remove();
+                        }
+                        lyrClientLinesBuffer = L.featureGroup();
+                        // Here we recreat it using json
+                        lyrClientLines = L.geoJSON(jsonLinears, {style:styleClientLinears, onEachFeature:processClientLinears,
+                            filter:filterClientLines}).addTo(mymap);
+                        // Layer control
+                        ctlLayers.addOverlay(lyrClientLines, "Linear Projects")
+                        arProjectIDs.sort(function(a,b){return a-b});
+                        $("#txtFindProject").autocomplete({
+                            source:arProjectIDs
+                        });
+                        lyrClientLinesBuffer.addTo(mymap);
+                        lyrClientLines.bringToFront();
+                    }
+                });
+            }
+
+            /*lyrClientLinesBuffer = L.featureGroup();
+            lyrClientLines = L.geoJSON.ajax('data/client_lines.geojson', {style:styleClientLinears, onEachFeature:processClientLinears,
+                filter:filterClientLines}).addTo(mymap);
+            lyrClientLines.on('data:loaded', function(){
+                arProjectIDs.sort(function(a,b){return a-b});
+                $("#txtFindProject").autocomplete({
+                    source:arProjectIDs
+                });
+                lyrClientLinesBuffer.addTo(mymap);
+                lyrClientLines.bringToFront();
+            });*/
             
             // *********  Eagle Functions *****************
 
@@ -1002,6 +1064,10 @@ if (logged_in()) {
                 });
 
             });*/
+
+            // /*** GBH Functions ***/
+
+
             
             //  *********  jQuery Event Handlers  ************
 
