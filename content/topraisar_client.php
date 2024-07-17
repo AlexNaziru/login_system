@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -137,7 +137,7 @@ if (logged_in()) {
             <!-- Map Legend -->
             <button id="btnShowLegend" class="btn btn-success btn-block ">Show Legend</button>
             <div id="legend">
-                <div id="lgndClientLinears">
+                <div id="lgndLinearProjects">
                     <h4 class="text-center">Linear Projects - Legend <i id="btnLinearProjects" class="fa fa-server"></i></h4>
                     <div id="legendLinearProjectDetails">
                         <svg height="270" width="100%">
@@ -186,7 +186,7 @@ if (logged_in()) {
                         </svg>
                     </div>
                 </div>
-                <div id="lgndEagleNest">
+                <div id="lgndEagleNests">
                     <h4 class="text-center">Eagle Nests <i id="btnEagle" class="fa fa-server"></i></h4>
                     <div id="lgndEagleDetail">
                         <svg height="60">
@@ -197,7 +197,7 @@ if (logged_in()) {
                         </svg>
                     </div>
                 </div>
-                <div id="lgndRaptorNest">
+                <div id="lgndRaptorNests">
                     <h4 class="text-center">Raptor Nests <i id="btnRaptor" class="fa fa-server"></i></h4>
                     <div id="lgndRaptorDetail">
                         <svg height="90">
@@ -210,7 +210,7 @@ if (logged_in()) {
                         </svg>
                     </div>
                 </div>
-                <div id="lgndGBHRookeries">
+                <div id="lgndHeronRookeries">
                     <h4 class="text-center">Heron Rookeries <i id="btnGBH" class="fa fa-server"></i></h4>
                     <div id="lgndGBHDetail">
                         <svg height="40">
@@ -411,17 +411,7 @@ if (logged_in()) {
                 refreshRaptors();
                 refreshLinears();
                 refreshBUOWL();
-
-                // Here we are loading data from a static file
-                /*lyrEagleNests = L.geoJSON.ajax('data/wildlife_eagle.geojson', {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
-                lyrEagleNests.on('data:loaded', function(){
-                    arEagleIDs.sort(function(a,b){return a-b});
-                    $("#txtFindEagle").autocomplete({
-                        source:arEagleIDs
-                    });
-                });*/
-                
-                lyrGBH = L.geoJSON.ajax('data/wildlife_gbh.geojson', {style:{color:'fuchsia'}}).bindTooltip("GBH Nesting Area").addTo(mymap);
+                refreshGBH();
                 
                 // ********* Setup Layer Control  ***************
                 
@@ -442,10 +432,26 @@ if (logged_in()) {
                 mymap.on("overlayadd", function (e) {
                     let strDiv = "#lgnd"+stripSpaces(e.name);
                     $(strDiv).show();
+                    // we use == because we don't want to compare type
+                    if (e.name == "Linear Projects") {
+                        lyrClientLinesBuffer.addTo(mymap);
+                        lyrClientLines.bringToFront();
+                    }
+                    if (e.name == "Burrowing Owl Habitat") {
+                        lyrBUOWLbuffer.addTo(mymap);
+                        lyrBUOWL.bringToFront();
+                    }
                 });
                 mymap.on("overlayremove", function (e) {
                     let strDiv = "#lgnd"+stripSpaces(e.name);
                     $(strDiv).hide();
+                    // Removing the buffer too (dots around the overlay)
+                    if (e.name == "Linear Projects") {
+                        lyrClientLinesBuffer.remove();
+                    }
+                    if (e.name == "Burrowing Owl Habitat") {
+                        lyrBUOWLbuffer.remove();
+                    }
                 });
 
                 ctlLegend = new L.Control.Legend({
@@ -669,18 +675,6 @@ if (logged_in()) {
                     }
                 });
             }
-
-            /*lyrBUOWL = L.geoJSON.ajax('data/wildlife_buowl.geojson', {style:styleBUOWL, onEachFeature:processBUOWL, filter:filterBUOWL}).addTo(mymap);
-            lyrBUOWL.on('data:loaded', function(){
-                arHabitatIDs.sort(function(a,b){return a-b});
-                $("#txtFindBUOWL").autocomplete({
-                    source:arHabitatIDs
-                });
-                // Radius
-                    jsonBUOWLbuffer = turf.buffer(lyrBUOWL.toGeoJSON(), 0.3, "kilometers");
-                    lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {style:{color: "yellow", dashArray: "5,5", fillOpacity: 0}}).addTo(mymap);
-                    lyrBUOWL.bringToFront();
-            });*/
             
             // ************ Client Linears **********
 
@@ -840,18 +834,6 @@ if (logged_in()) {
                     }
                 });
             }
-
-            /*lyrClientLinesBuffer = L.featureGroup();
-            lyrClientLines = L.geoJSON.ajax('data/client_lines.geojson', {style:styleClientLinears, onEachFeature:processClientLinears,
-                filter:filterClientLines}).addTo(mymap);
-            lyrClientLines.on('data:loaded', function(){
-                arProjectIDs.sort(function(a,b){return a-b});
-                $("#txtFindProject").autocomplete({
-                    source:arProjectIDs
-                });
-                lyrClientLinesBuffer.addTo(mymap);
-                lyrClientLines.bringToFront();
-            });*/
             
             // *********  Eagle Functions *****************
 
@@ -1041,7 +1023,7 @@ if (logged_in()) {
                             lyrMarkerCluster.remove();
                             lyrRaptorNests.remove();
                         }
-                        lyrRaptorNests = L.geoJSON(jsonRaptor, {pointToLayer:returnRaptorMarker, filter:filterRaptor}).addTo(mymap);
+                        lyrRaptorNests = L.geoJSON(jsonRaptor, {pointToLayer:returnRaptorMarker, filter:filterRaptor});
 
                         arRaptorIDs.sort(function(a,b){return a-b});
                         $("#txtFindRaptor").autocomplete({
@@ -1056,18 +1038,24 @@ if (logged_in()) {
                 });
             }
 
-            /*lyrRaptorNests = L.geoJSON.ajax('data/wildlife_raptor.geojson', {pointToLayer:returnRaptorMarker, filter:filterRaptor});
-            lyrRaptorNests.on('data:loaded', function(){
-                arRaptorIDs.sort(function(a,b){return a-b});
-                $("#txtFindRaptor").autocomplete({
-                    source:arRaptorIDs
+            //               /*** GBH Functions ***/
+
+            function refreshGBH() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_gbh", flds: "id, activity"},
+                    type: "POST",
+                    success: function (response){
+                        jsonGBH = JSON.parse(response);
+                        if (lyrGBH) {
+                            ctlLayers.removeLayer(lyrGBH);
+                            lyrGBH.remove();
+                        }
+                        lyrGBH = L.geoJSON(jsonGBH, {style:{color:'fuchsia'}}).bindTooltip("GBH Nesting Area").addTo(mymap);
+                        // Layer control
+                        ctlLayers.addOverlay(lyrGBH, "Heron Rookeries")
+                    }
                 });
-
-            });*/
-
-            // /*** GBH Functions ***/
-
-
+            }
             
             //  *********  jQuery Event Handlers  ************
 
