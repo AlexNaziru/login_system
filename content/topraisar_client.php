@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -54,7 +54,6 @@ if (logged_in()) {
         <script src="src/plugins/leaflet-mapkey/L.Icon.Mapkey.js"></script>
         <script src="src/plugins/leaflet.markercluster.js"></script>
         <script src="src/plugins/leaflet.geometryutil.js"></script>
-        <script src="src/turf.min.js"></script>
         <script src="src/jquery-ui.min.js"></script>
         <script src="src/plugins/leaflet-legend.js"></script>
         
@@ -764,9 +763,7 @@ if (logged_in()) {
                 lyr.bindTooltip("<h4>Linear Project: "+att.project+"</h4>Type: "+att.type+"<br>ROW Width: "+att.row_width
                 +"<br>Length: "+returnMultiLength(lyr.getLatLngs()).toFixed(0));
                 arProjectIDs.push(att.project.toString());
-                const jsonBuffer = turf.buffer(json, att.row_width / 1000, "kilometers");
-                const lyrBuffer = L.geoJSON(jsonBuffer, {style: {color: "gray", dashArray: "5,5"}});
-                lyrClientLinesBuffer.addLayer(lyrBuffer);
+
             }
 
             function filterClientLines(json) {
@@ -889,7 +886,42 @@ if (logged_in()) {
                             $("#txtFindProject").autocomplete({
                                 source: arProjectIDs
                             });
-                            lyrClientLinesBuffer.addTo(mymap);
+                            refreshLinearsBuffers();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: "+error)
+                    }
+                });
+            }
+
+            function refreshLinearsBuffers() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width"},
+                    type: "POST",
+                    success: function (response){
+                        if (response.substring(0, 5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            try {
+                                jsonLinearBuffers = JSON.parse(response);
+                            } catch (e) {
+                                console.error("Error parsing JSON:", e);
+                                console.error("Response:", response);
+                                return; // Exit the function if JSON parsing fails
+                            }
+
+                            if (lyrClientLinesBuffer) {
+                                lyrClientLinesBuffer.remove();
+                            }
+                            lyrClientLinesBuffer = L.geoJSON(jsonLinearBuffers, {
+                                style: {
+                                    color: "grey",
+                                    dashArray: "5,5",
+                                    fillOpacity: 0
+                                },
+                                filter: filterClientLines
+                            }).addTo(mymap);
                             lyrClientLines.bringToFront();
                         }
                     },
