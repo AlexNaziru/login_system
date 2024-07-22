@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -660,25 +660,65 @@ if (logged_in()) {
                     data: {tbl: "dj_buowl", flds: "id, habitat, hist_occup, recentstatus, habitat_id"},
                     type: "POST",
                     success: function (response){
-                        // Reset the eagle id layer, it has to be empty before we reload the data
-                        arHabitatIDs = [];
-                        jsonBUOWL = JSON.parse(response);
-                        if (lyrBUOWL) {
-                            ctlLayers.removeLayer(lyrBUOWL);
-                            lyrBUOWL.remove();
-                            lyrBUOWLbuffer.remove();
+                        if (response.substring(0, 5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            // Reset the eagle id layer, it has to be empty before we reload the data
+                            arHabitatIDs = [];
+                            jsonBUOWL = JSON.parse(response);
+                            if (lyrBUOWL) {
+                                ctlLayers.removeLayer(lyrBUOWL);
+                                lyrBUOWL.remove();
+                                lyrBUOWLbuffer.remove();
+                            }
+                            lyrBUOWL = L.geoJSON(jsonBUOWL, {
+                                style: styleBUOWL,
+                                onEachFeature: processBUOWL,
+                                filter: filterBUOWL
+                            }).addTo(mymap);
+                            // Layer control
+                            ctlLayers.addOverlay(lyrBUOWL, "Burrowing Owl Habitat")
+                            arHabitatIDs.sort(function (a, b) {
+                                return a - b
+                            });
+                            $("#txtFindBUOWL").autocomplete({
+                                source: arHabitatIDs
+                            });
+                            refreshBUOWLBuffer();
                         }
-                        lyrBUOWL = L.geoJSON(jsonBUOWL, {style:styleBUOWL, onEachFeature:processBUOWL, filter:filterBUOWL}).addTo(mymap);
-                        // Layer control
-                        ctlLayers.addOverlay(lyrBUOWL, "Burrowing Owl Habitat")
-                        arHabitatIDs.sort(function(a,b){return a-b});
-                        $("#txtFindBUOWL").autocomplete({
-                            source:arHabitatIDs
-                        });
-                        // Radius
-                        jsonBUOWLbuffer = turf.buffer(lyrBUOWL.toGeoJSON(), 0.3, "kilometers");
-                        lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {style:{color: "yellow", dashArray: "5,5", fillOpacity: 0}}).addTo(mymap);
-                        lyrBUOWL.bringToFront();
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: "+error)
+                    }
+                });
+            }
+
+            // getting buffered data
+            function refreshBUOWLBuffer() {
+                $.ajax({url: "load_data.php",
+                    data: {tbl: "dj_buowl", flds: "id, habitat, hist_occup, recentstatus, habitat_id", distance: 300}, // distance is for the buffer
+                    type: "POST",
+                    success: function (response){
+                        if (response.substring(0, 5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            jsonBUOWLbuffer = JSON.parse(response);
+                            if (lyrBUOWLbuffer) {
+                                lyrBUOWLbuffer.remove();
+                            }
+                            lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {
+                                style: {
+                                    color: "hotpink",
+                                    dashArray: "5,5",
+                                    fillOpacity: 0
+                                },
+                                filter: filterBUOWL
+                            }).addTo(mymap);
+                            lyrBUOWL.bringToFront();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: "+error)
                     }
                 });
             }
@@ -817,33 +857,44 @@ if (logged_in()) {
                     data: {tbl: "dj_linear_projects", flds: "id, type, row_width, project"},
                     type: "POST",
                     success: function (response){
-                        // Reset the eagle id layer, it has to be empty before we reload the data
-                        arProjectIDs = [];
-                        try {
-                            jsonLinears = JSON.parse(response);
-                        } catch (e) {
-                            console.error("Error parsing JSON:", e);
-                            console.error("Response:", response);
-                            return; // Exit the function if JSON parsing fails
-                        }
+                        if (response.substring(0, 5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            // Reset the eagle id layer, it has to be empty before we reload the data
+                            arProjectIDs = [];
+                            try {
+                                jsonLinears = JSON.parse(response);
+                            } catch (e) {
+                                console.error("Error parsing JSON:", e);
+                                console.error("Response:", response);
+                                return; // Exit the function if JSON parsing fails
+                            }
 
-                        if (lyrClientLines) {
-                            ctlLayers.removeLayer(lyrClientLines);
-                            lyrClientLines.remove();
-                            lyrClientLinesBuffer.remove();
+                            if (lyrClientLines) {
+                                ctlLayers.removeLayer(lyrClientLines);
+                                lyrClientLines.remove();
+                                lyrClientLinesBuffer.remove();
+                            }
+                            lyrClientLinesBuffer = L.featureGroup();
+                            // Here we recreat it using json
+                            lyrClientLines = L.geoJSON(jsonLinears, {
+                                style: styleClientLinears, onEachFeature: processClientLinears,
+                                filter: filterClientLines
+                            }).addTo(mymap);
+                            // Layer control
+                            ctlLayers.addOverlay(lyrClientLines, "Linear Projects")
+                            arProjectIDs.sort(function (a, b) {
+                                return a - b
+                            });
+                            $("#txtFindProject").autocomplete({
+                                source: arProjectIDs
+                            });
+                            lyrClientLinesBuffer.addTo(mymap);
+                            lyrClientLines.bringToFront();
                         }
-                        lyrClientLinesBuffer = L.featureGroup();
-                        // Here we recreat it using json
-                        lyrClientLines = L.geoJSON(jsonLinears, {style:styleClientLinears, onEachFeature:processClientLinears,
-                            filter:filterClientLines}).addTo(mymap);
-                        // Layer control
-                        ctlLayers.addOverlay(lyrClientLines, "Linear Projects")
-                        arProjectIDs.sort(function(a,b){return a-b});
-                        $("#txtFindProject").autocomplete({
-                            source:arProjectIDs
-                        });
-                        lyrClientLinesBuffer.addTo(mymap);
-                        lyrClientLines.bringToFront();
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: "+error)
                     }
                 });
             }
@@ -922,20 +973,28 @@ if (logged_in()) {
                     data: {tbl: "dj_eagle", flds: "id, status, nest_id"},
                     type: "POST",
                     success: function (response){
-                        // Reset the eagle id layer, it has to be empty before we reload the data
-                        arEagleIDs = [];
-                        jsonEagles = JSON.parse(response);
-                        if (lyrEagleNests) {
-                            ctlLayers.removeLayer(lyrEagleNests);
-                            lyrEagleNests.remove();
+                    // Handling db errors. If we do not get json back
+                        if (response.substring(0,5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            // Reset the eagle id layer, it has to be empty before we reload the data
+                            arEagleIDs = [];
+                            jsonEagles = JSON.parse(response);
+                            if (lyrEagleNests) {
+                                ctlLayers.removeLayer(lyrEagleNests);
+                                lyrEagleNests.remove();
+                            }
+                            lyrEagleNests = L.geoJSON(jsonEagles, {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
+                            // Layer control
+                            ctlLayers.addOverlay(lyrEagleNests, "Eagle Nests")
+                            arEagleIDs.sort(function(a,b){return a-b});
+                            $("#txtFindEagle").autocomplete({
+                                source:arEagleIDs
+                            });
                         }
-                        lyrEagleNests = L.geoJSON(jsonEagles, {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
-                        // Layer control
-                        ctlLayers.addOverlay(lyrEagleNests, "Eagle Nests")
-                        arEagleIDs.sort(function(a,b){return a-b});
-                        $("#txtFindEagle").autocomplete({
-                            source:arEagleIDs
-                        });
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: "+error)
                     }
                 });
             }
@@ -1036,29 +1095,42 @@ if (logged_in()) {
             });
 
             function refreshRaptors() {
-                $.ajax({url: "load_data.php",
+                $.ajax({
+                    url: "load_data.php",
                     data: {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"},
                     type: "POST",
-                    success: function (response){
-                        // Reset the eagle id layer, it has to be empty before we reload the data
-                        arRaptorIDs = [];
-                        jsonRaptor = JSON.parse(response);
-                        if (lyrMarkerCluster) {
-                            ctlLayers.removeLayer(lyrMarkerCluster);
-                            lyrMarkerCluster.remove();
-                            lyrRaptorNests.remove();
-                        }
-                        lyrRaptorNests = L.geoJSON(jsonRaptor, {pointToLayer:returnRaptorMarker, filter:filterRaptor});
+                    success: function (response) {
+                        if (response.substring(0, 5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            // Reset the eagle id layer, it has to be empty before we reload the data
+                            arRaptorIDs = [];
+                            jsonRaptor = JSON.parse(response);
+                            if (lyrMarkerCluster) {
+                                ctlLayers.removeLayer(lyrMarkerCluster);
+                                lyrMarkerCluster.remove();
+                                lyrRaptorNests.remove();
+                            }
+                            lyrRaptorNests = L.geoJSON(jsonRaptor, {
+                                pointToLayer: returnRaptorMarker,
+                                filter: filterRaptor
+                            });
 
-                        arRaptorIDs.sort(function(a,b){return a-b});
-                        $("#txtFindRaptor").autocomplete({
-                            source:arRaptorIDs
-                        });
-                        lyrMarkerCluster = L.markerClusterGroup();
-                        lyrMarkerCluster.addLayer(lyrRaptorNests);
-                        lyrMarkerCluster.addTo(mymap);
-                        // Layer control
-                        ctlLayers.addOverlay(lyrMarkerCluster, "Raptor Nests")
+                            arRaptorIDs.sort(function (a, b) {
+                                return a - b
+                            });
+                            $("#txtFindRaptor").autocomplete({
+                                source: arRaptorIDs
+                            });
+                            lyrMarkerCluster = L.markerClusterGroup();
+                            lyrMarkerCluster.addLayer(lyrRaptorNests);
+                            lyrMarkerCluster.addTo(mymap);
+                            // Layer control
+                            ctlLayers.addOverlay(lyrMarkerCluster, "Raptor Nests")
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: " + error)
                     }
                 });
             }
@@ -1070,14 +1142,21 @@ if (logged_in()) {
                     data: {tbl: "dj_gbh", flds: "id, activity"},
                     type: "POST",
                     success: function (response){
-                        jsonGBH = JSON.parse(response);
-                        if (lyrGBH) {
-                            ctlLayers.removeLayer(lyrGBH);
-                            lyrGBH.remove();
+                        if (response.substring(0, 5) == "ERROR") {
+                            alert(response);
+                        } else {
+                            jsonGBH = JSON.parse(response);
+                            if (lyrGBH) {
+                                ctlLayers.removeLayer(lyrGBH);
+                                lyrGBH.remove();
+                            }
+                            lyrGBH = L.geoJSON(jsonGBH, {style: {color: 'fuchsia'}}).bindTooltip("GBH Nesting Area").addTo(mymap);
+                            // Layer control
+                            ctlLayers.addOverlay(lyrGBH, "Heron Rookeries")
                         }
-                        lyrGBH = L.geoJSON(jsonGBH, {style:{color:'fuchsia'}}).bindTooltip("GBH Nesting Area").addTo(mymap);
-                        // Layer control
-                        ctlLayers.addOverlay(lyrGBH, "Heron Rookeries")
+                    },
+                    error: function (xhr, status, error) {
+                        alert("ERROR: " + error)
                     }
                 });
             }
