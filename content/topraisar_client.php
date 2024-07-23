@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -403,7 +403,7 @@ if (logged_in()) {
                 mymap.addLayer(lyrOSM);
                 
                 fgpDrawnItems = new L.FeatureGroup();
-                fgpDrawnItems.addTo(mymap);
+                //fgpDrawnItems.addTo(mymap);
 
                 /*** Loading our data ***/
                 // Here we are loading the same data from bellow but from the postGIS database use AJAX
@@ -606,24 +606,33 @@ if (logged_in()) {
             });
             
             $("#btnFindBUOWL").click(function(){
-                var val = $("#txtFindBUOWL").val();
-                var lyr = returnLayerByAttribute(lyrBUOWL,'habitat_id',val);
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    lyrSearch = L.geoJSON(lyr.toGeoJSON(), {style:{color:'red', weight:10, opacity:0.5, fillOpacity:0}}).addTo(mymap);
-                    mymap.fitBounds(lyr.getBounds().pad(1));
-                    var att = lyr.feature.properties;
-                    $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: "+att.habitat_id+"</h5><h5>Historically Occupied: "+att.hist_occup+"</h5><h5>Recent Status: "+att.recentstatus+"</h5>");
-                    $("#divBUOWLError").html("");
+                const val = $("#txtFindBUOWL").val();
+                returnLayerByAttribute("dj_buowl",'habitat_id',val,
+                function (lyr) {
+                    if (lyr) {
+                        if (lyrSearch) {
+                            lyrSearch.remove();
+                        }
+                        lyrSearch = L.geoJSON(lyr.toGeoJSON(), {
+                            style: {
+                                color: 'red',
+                                weight: 10,
+                                opacity: 0.5,
+                                fillOpacity: 0
+                            }
+                        }).addTo(mymap);
+                        mymap.fitBounds(lyr.getBounds().pad(1));
+                        var att = lyr.feature.properties;
+                        $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: " + att.habitat_id + "</h5><h5>Historically Occupied: " + att.hist_occup + "</h5><h5>Recent Status: " + att.recentstatus + "</h5>");
+                        $("#divBUOWLError").html("");
 
-                    // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
-                    fgpDrawnItems.clearLayers();
-                    fgpDrawnItems.addLayer(lyr);
-                } else {
-                    $("#divBUOWLError").html("**** Habitat ID not found ****");
-                }
+                        // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
+                        fgpDrawnItems.clearLayers();
+                        fgpDrawnItems.addLayer(lyr);
+                    } else {
+                        $("#divBUOWLError").html("**** Habitat ID not found ****");
+                    }
+                })
             });
             
             $("#lblBUOWL").click(function(){
@@ -772,29 +781,32 @@ if (logged_in()) {
 
             
             $("#txtFindProject").on('keyup paste', function(){
-                var val = $("#txtFindProject").val();
+                const val = $("#txtFindProject").val();
                 testLayerAttribute(arProjectIDs, val, "PROJECT ID", "#divFindProject", "#divProjectError", "#btnFindProject");
             });
             
             $("#btnFindProject").click(function(){
-                var val = $("#txtFindProject").val();
-                var lyr = returnLayerByAttribute(lyrClientLines,'project',val);
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    lyrSearch = L.geoJSON(lyr.toGeoJSON(), {style:{color:'red', weight:10, opacity:0.5}}).addTo(mymap);
-                    mymap.fitBounds(lyr.getBounds().pad(1));
-                    var att = lyr.feature.properties;
-                    $("#divProjectData").html("<h4 class='text-center'>Attributes</h4><h5>Type: "+att.type+"</h5><h5>ROW width: "+att.row_width+ "m </h5>");
-                    $("#divProjectError").html("");
+                const val = $("#txtFindProject").val();
+                returnLayerByAttribute("dj_linear_projects",'project',val,
+                    function (lyr) {
+                        if (lyr) {
+                            if (lyrSearch) {
+                                lyrSearch.remove();
+                            }
+                            lyrSearch = L.geoJSON(lyr.toGeoJSON(), {style:{color:'red', weight:10, opacity:0.5}}).addTo(mymap);
+                            mymap.fitBounds(lyr.getBounds().pad(1));
+                            var att = lyr.feature.properties;
+                            $("#divProjectData").html("<h4 class='text-center'>Attributes</h4><h5>Type: "+att.type+"</h5><h5>ROW width: "+att.row_width+ "m </h5>");
+                            $("#divProjectError").html("");
 
-                    // Editing geometries.
-                    fgpDrawnItems.clearLayers();
-                    fgpDrawnItems.addLayer(lyr);
-                } else {
-                    $("#divProjectError").html("**** Project ID not found ****");
-                }
+                            // Editing geometries.
+                            fgpDrawnItems.clearLayers();
+                            fgpDrawnItems.addLayer(lyr);
+                        } else {
+                            $("#divProjectError").html("**** Project ID not found ****");
+                        }
+                    }
+                );
             });
             
             $("#lblProject").click(function(){
@@ -979,24 +991,32 @@ if (logged_in()) {
             });
             
             $("#btnFindEagle").click(function(){
-                var val = $("#txtFindEagle").val();
-                var lyr = returnLayerByAttribute(lyrEagleNests,'nest_id',val);
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    lyrSearch = L.circle(lyr.getLatLng(), {radius:800, color:'red', weight:10, opacity:0.5, fillOpacity:0}).addTo(mymap);
-                    mymap.setView(lyr.getLatLng(), 14);
-                    var att = lyr.feature.properties;
-                    $("#divEagleData").html("<h4 class='text-center'>Attributes</h4><h5>Status: "+att.status+"</h5>");
-                    $("#divEagleError").html("");
+                const val = $("#txtFindEagle").val();
+                returnLayerByAttribute("dj_eagle",'nest_id',val,
+                function (lyr) {
+                    if (lyr) {
+                        if (lyrSearch) {
+                            lyrSearch.remove();
+                        }
+                        lyrSearch = L.circle(lyr.getLatLng(), {
+                            radius: 800,
+                            color: 'red',
+                            weight: 10,
+                            opacity: 0.5,
+                            fillOpacity: 0
+                        }).addTo(mymap);
+                        mymap.setView(lyr.getLatLng(), 14);
+                        var att = lyr.feature.properties;
+                        $("#divEagleData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.status + "</h5>");
+                        $("#divEagleError").html("");
 
-                    // Editing geometries.
-                    fgpDrawnItems.clearLayers();
-                    fgpDrawnItems.addLayer(lyr);
-                } else {
-                    $("#divEagleError").html("**** Eagle Nest ID not found ****");
-                }
+                        // Editing geometries.
+                        fgpDrawnItems.clearLayers();
+                        fgpDrawnItems.addLayer(lyr);
+                    } else {
+                        $("#divEagleError").html("**** Eagle Nest ID not found ****");
+                    }
+                })
             });
             
             $("#lblEagle").click(function(){
@@ -1100,35 +1120,43 @@ if (logged_in()) {
             });
             
             $("#btnFindRaptor").click(function(){
-                var val = $("#txtFindRaptor").val();
-                var lyr = returnLayerByAttribute(lyrRaptorNests,'nest_id',val);
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    var att = lyr.feature.properties;
-                    switch (att.recentspecies) {
-                        case 'Red-tail Hawk':
-                            var radRaptor = 533;
-                            break;
-                        case 'Swainsons Hawk':
-                            var radRaptor = 400;
-                            break;
-                        default:
-                            var radRaptor = 804;
-                            break;
-                    }
-                    lyrSearch = L.circle(lyr.getLatLng(), {radius:radRaptor, color:'red', weight:10, opacity:0.5, fillOpacity:0}).addTo(mymap);
-                    mymap.setView(lyr.getLatLng(), 14);
-                    $("#divRaptorData").html("<h4 class='text-center'>Attributes</h4><h5>Status: "+att.recentstatus+"</h5><h5>Species: "+att.recentspecies+"</h5><h5>Last Survey: "+att.lastsurvey+"</h5>");
-                    $("#divRaptorError").html("");
+                const val = $("#txtFindRaptor").val();
+                returnLayerByAttribute("dj_raptor",'nest_id',val,
+                function (lyr) {
+                    if (lyr) {
+                        if (lyrSearch) {
+                            lyrSearch.remove();
+                        }
+                        var att = lyr.feature.properties;
+                        switch (att.recentspecies) {
+                            case 'Red-tail Hawk':
+                                var radRaptor = 533;
+                                break;
+                            case 'Swainsons Hawk':
+                                var radRaptor = 400;
+                                break;
+                            default:
+                                var radRaptor = 804;
+                                break;
+                        }
+                        lyrSearch = L.circle(lyr.getLatLng(), {
+                            radius: radRaptor,
+                            color: 'red',
+                            weight: 10,
+                            opacity: 0.5,
+                            fillOpacity: 0
+                        }).addTo(mymap);
+                        mymap.setView(lyr.getLatLng(), 14);
+                        $("#divRaptorData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.recentstatus + "</h5><h5>Species: " + att.recentspecies + "</h5><h5>Last Survey: " + att.lastsurvey + "</h5>");
+                        $("#divRaptorError").html("");
 
-                    // Editing geometries.
-                    fgpDrawnItems.clearLayers();
-                    fgpDrawnItems.addLayer(lyr);
-                } else {
-                    $("#divRaptorError").html("**** Raptor Nest ID not found ****");
-                }
+                        // Editing geometries.
+                        fgpDrawnItems.clearLayers();
+                        fgpDrawnItems.addLayer(lyr);
+                    } else {
+                        $("#divRaptorError").html("**** Raptor Nest ID not found ****");
+                    }
+                })
             });
             
             $("#lblRaptor").click(function(){
@@ -1261,8 +1289,9 @@ if (logged_in()) {
             function LatLngToArrayString(ll) {
                 return "["+ll.lat.toFixed(5)+", "+ll.lng.toFixed(5)+"]";
             }
-            
-            function returnLayerByAttribute(tbl,fld,val) {
+
+            // Async function
+            function returnLayerByAttribute(tbl,fld,val, callback) {
                 let arLyrs;
                 // server side from the database
                 let whr = fld+"='"+val+"'";
@@ -1273,20 +1302,23 @@ if (logged_in()) {
                     success: function (response) {
                         if (response.substr(0,5)=="ERROR") {
                             alert(response);
+                            callback(false);
                         } else {
                             const jsn = JSON.parse(response);
                             const lyr = L.geoJSON(jsn);
                             arLyrs = lyr.getLayers();
                             if (arLyrs.length > 0) {
-                                return arLyrs[0];
+                                callback(arLyrs[0]);
+                            } else {
+                                callback(false);
                             }
                         }
                     },
                     error: function (xhr, status, error) {
-
+                        alert("ERROR: "+error);
+                        callback(false);
                     }
                 });
-                return arLyrs[0];
                 /*const arLayers = lyr.getLayers();
                 for (i=0;i<arLayers.length-1;i++) {
                     const ftrVal = arLayers[i].feature.properties[att];
