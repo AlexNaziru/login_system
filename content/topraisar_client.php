@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -272,7 +272,7 @@ if (logged_in()) {
                         <input type="radio" name="fltBUOWL" value="Yes">Historically Occupied
                     </div>
                     <div class="col-xs-4">
-                        <input type="radio" name="fltBUOWL" value="INACTIVE LOCATION">Undetermined
+                        <input type="radio" name="fltBUOWL" value="Undetermined">Undetermined
                     </div>
                 </div>
                 <div class="" id="divBUOWLData"></div>
@@ -600,20 +600,6 @@ if (logged_in()) {
                 arHabitatIDs.push(att.habitat_id.toString())
             }
             
-            function filterBUOWL(json){
-                var att = json.properties;
-                if (att.recentstatus=='REMOVED') {
-                    return false;
-                } else {
-                    const optFilter = $("input[name=fltBUOWL]:checked").val();
-                    if (optFilter === "ALL") {
-                        return true;
-                    } else {
-                        return (att.hist_occup == optFilter);
-                    }
-                }
-            }
-            
             $("#txtFindBUOWL").on('keyup paste', function(){
                 var val = $("#txtFindBUOWL").val();
                 testLayerAttribute(arHabitatIDs, val, "Habitat ID", "#divFindBUOWL", "#divBUOWLError", "#btnFindBUOWL");
@@ -644,8 +630,14 @@ if (logged_in()) {
                 $("#divBUOWLData").toggle(); 
             });
 
+            // Filtering
             $("input[name=fltBUOWL]").click(function () {
-                refreshBUOWL();
+                const optFilter = $("input[name=fltBUOWL]:checked").val();
+                if (optFilter == "ALL") {
+                    refreshBUOWL();
+                } else {
+                    refreshBUOWL("hist_occup='"+optFilter+"'");
+                }
             });
 
             // Refreshing the server
@@ -654,9 +646,16 @@ if (logged_in()) {
                 refreshBUOWL();
             });
 
-            function refreshBUOWL() {
+            function refreshBUOWL(whr) {
+                // filtering
+                let objData;
+                if (whr) {
+                    objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", where: whr};
+                } else {
+                    objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup"};
+                }
                 $.ajax({url: "load_data.php",
-                    data: {tbl: "dj_buowl", flds: "id, habitat, hist_occup, recentstatus, habitat_id"},
+                    data: objData,
                     type: "POST",
                     success: function (response){
                         if (response.substring(0, 5) == "ERROR") {
@@ -672,8 +671,7 @@ if (logged_in()) {
                             }
                             lyrBUOWL = L.geoJSON(jsonBUOWL, {
                                 style: styleBUOWL,
-                                onEachFeature: processBUOWL,
-                                filter: filterBUOWL
+                                onEachFeature: processBUOWL
                             }).addTo(mymap);
                             // Layer control
                             ctlLayers.addOverlay(lyrBUOWL, "Burrowing Owl Habitat")
@@ -683,7 +681,7 @@ if (logged_in()) {
                             $("#txtFindBUOWL").autocomplete({
                                 source: arHabitatIDs
                             });
-                            refreshBUOWLBuffer();
+                            refreshBUOWLBuffer(whr);
                         }
                     },
                     error: function (xhr, status, error) {
@@ -692,10 +690,16 @@ if (logged_in()) {
                 });
             }
 
-            // getting buffered data
-            function refreshBUOWLBuffer() {
+            // getting buffer data
+            function refreshBUOWLBuffer(whr) {
+                let objData;
+                if (whr) {
+                    objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", where: whr , distance: 300};// distance is for the buffer
+                } else {
+                    objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", distance: 300};
+                }
                 $.ajax({url: "load_data.php",
-                    data: {tbl: "dj_buowl", flds: "id, habitat, hist_occup, recentstatus, habitat_id", distance: 300}, // distance is for the buffer
+                    data: objData,
                     type: "POST",
                     success: function (response){
                         if (response.substring(0, 5) == "ERROR") {
@@ -711,7 +715,6 @@ if (logged_in()) {
                                     dashArray: "5,5",
                                     fillOpacity: 0
                                 },
-                                filter: filterBUOWL
                             }).addTo(mymap);
                             lyrBUOWL.bringToFront();
                         }
@@ -766,41 +769,7 @@ if (logged_in()) {
 
             }
 
-            function filterClientLines(json) {
-                const arProjectFilters = [];
-                $("input[name=fltProject]").each(function () {
-                    if (this.checked) {
-                        arProjectFilters.push(this.value);
-                    }
-                });
-                const att = json.properties;
-                switch (att.type) {
-                    case "Pipeline":
-                        return (arProjectFilters.indexOf("Pipeline") >= 0);
-                        break;
-                    case "Flowline":
-                        return (arProjectFilters.indexOf("Flowline") >= 0);
-                        break;
-                    case "Flowline, est":
-                        return (arProjectFilters.indexOf("Flowline") >= 0);
-                        break;
-                    case "Electric line":
-                        return (arProjectFilters.indexOf("Electric") >= 0);
-                        break;
-                    case "Access Road - Confirmed":
-                        return (arProjectFilters.indexOf("Road") >= 0);
-                        break;
-                    case "Access Road - Estimated":
-                        return (arProjectFilters.indexOf("Road") >= 0);
-                        break;
-                    case "Extraction":
-                        return (arProjectFilters.indexOf("Extraction") >= 0);
-                        break;
-                    default:
-                        return (arProjectFilters.indexOf("Other") >= 0);
-                        break;
-                }
-            }
+
             
             $("#txtFindProject").on('keyup paste', function(){
                 var val = $("#txtFindProject").val();
@@ -836,22 +805,74 @@ if (logged_in()) {
             $("#btnProjectFilterAll").click(function () {
                 $("input[name=fltProject]").prop("checked", true);
             });
+
             $("#btnProjectFilterNone").click(function () {
                 $("input[name=fltProject]").prop("checked", false);
             });
+
             $("#btnProjectFilter").click(function () {
-                refreshLinears();
+                let arTypes = [];
+                let cntChecks = 0;
+                $("input[name=fltProject]").each(function () {
+                    // This function goes threw all the checkboxes, and it checkes them if they are checked and it adds different types of values to the arTypes
+                    if (this.checked) {
+                        if (this.value == "Pipeline") {
+                            arTypes.push("'Pipeline'");
+                            // After it loops threw the checkboxes, and it is checked, it gets incremented
+                            // after it does that, we will now how many boxes there are checked
+                            cntChecks++;
+                        }
+                        if (this.value=='Flowline') {
+                            arTypes.push("'Flowline'");
+                            arTypes.push("'Flowline, est.'");
+                            cntChecks++;
+                        }
+                        if (this.value=='Electric') {
+                            arTypes.push("'Electric Line'");
+                            cntChecks++;
+                        }
+                        if (this.value=='Road') {
+                            arTypes.push("'Access Road - Confirmed'");
+                            arTypes.push("'Access Road - Estimated'");
+                            cntChecks++;
+                        }
+                        if (this.value=='Extraction') {
+                            arTypes.push("'Extraction'");
+                            arTypes.push("'Delayed-Extraction'");
+                            cntChecks++;
+                        }
+                        if (this.value=='Other') {
+                            arTypes.push("'Other'");
+                            arTypes.push("'Underground Pipe'");
+                            cntChecks++;
+                        }
+                    }
+                });
+                if (cntChecks == 0) {
+                    // we are sending a false where clause so we won't get anything back or an error from the db
+                    refreshLinears("1=2");
+                } else if (cntChecks == 6) {
+                    refreshLinears();
+                } else {
+                    refreshLinears("type IN ("+arTypes.toString()+")");
+                }
             });
 
-            // Refreshing the server
+            // Refreshing the server and filtering data
             $("#btnRefreshLinear").click(function () {
-                alert("Refreshing Linears");
+                alert("Refreshed Linears");
                 refreshLinears();
             });
 
-            function refreshLinears() {
+            function refreshLinears(whr) {
+                let objData;
+                if (whr) {
+                    objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", where: whr};
+                } else {
+                    objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project"};
+                }
                 $.ajax({url: "load_data.php",
-                    data: {tbl: "dj_linear_projects", flds: "id, type, row_width, project"},
+                    data: objData,
                     type: "POST",
                     success: function (response){
                         if (response.substring(0, 5) == "ERROR") {
@@ -875,8 +896,7 @@ if (logged_in()) {
                             lyrClientLinesBuffer = L.featureGroup();
                             // Here we recreat it using json
                             lyrClientLines = L.geoJSON(jsonLinears, {
-                                style: styleClientLinears, onEachFeature: processClientLinears,
-                                filter: filterClientLines
+                                style: styleClientLinears, onEachFeature: processClientLinears
                             }).addTo(mymap);
                             // Layer control
                             ctlLayers.addOverlay(lyrClientLines, "Linear Projects")
@@ -886,7 +906,7 @@ if (logged_in()) {
                             $("#txtFindProject").autocomplete({
                                 source: arProjectIDs
                             });
-                            refreshLinearsBuffers();
+                            refreshLinearsBuffers(whr);
                         }
                     },
                     error: function (xhr, status, error) {
@@ -895,9 +915,15 @@ if (logged_in()) {
                 });
             }
 
-            function refreshLinearsBuffers() {
+            function refreshLinearsBuffers(whr) {
+                let objData;
+                if (whr) {
+                    objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width", where: whr};
+                } else {
+                    objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width"};
+                }
                 $.ajax({url: "load_data.php",
-                    data: {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width"},
+                    data: objData,
                     type: "POST",
                     success: function (response){
                         if (response.substring(0, 5) == "ERROR") {
@@ -920,7 +946,6 @@ if (logged_in()) {
                                     dashArray: "5,5",
                                     fillOpacity: 0
                                 },
-                                filter: filterClientLines
                             }).addTo(mymap);
                             lyrClientLines.bringToFront();
                         }
@@ -946,17 +971,6 @@ if (logged_in()) {
                 }
                 arEagleIDs.push(att.nest_id.toString());
                 return L.circle(latlng, {radius:804, color:clrNest,fillColor:'chartreuse', fillOpacity:0.5}).bindTooltip("<h4>Eagle Nest: "+att.nest_id+"</h4>Status: "+att.status);
-            }
-
-            /* Radio button */
-            function filterEagle(json) {
-              const att = json.properties;
-              const optFilter = $("input[name=fltEagle]:checked").val()
-                if (optFilter === "ALL") {
-                    return true;
-                } else {
-                    return (att.status === optFilter);
-                }
             }
             
             $("#txtFindEagle").on('keyup paste', function(){
@@ -991,7 +1005,13 @@ if (logged_in()) {
 
             // Radio buttons
             $("input[name=fltEagle]").click(function () {
-                refreshEagles();
+                // DB filtering instead from the local files
+                const optFilter = $("input[name=fltEagle]:checked").val();
+                if (optFilter == "ALL") {
+                    refreshEagles();
+                } else {
+                    refreshEagles("status='"+optFilter+"'");
+                }
             });
 
             // Refreshing the server
@@ -1000,9 +1020,18 @@ if (logged_in()) {
                 refreshEagles();
             });
 
-            function refreshEagles() {
+            // whr parameter means where. The where clause is for filterin sql. From tbl select x where ...
+            function refreshEagles(whr) {
+                /* Radio button */
+                let objData;
+                if (whr) {
+                    objData = {tbl: "dj_eagle", flds: "id, status, nest_id", where: whr};
+                } else {
+                    // if there is no where clause, returning everything from the database
+                    objData = {tbl: "dj_eagle", flds: "id, status, nest_id"};
+                }
                 $.ajax({url: "load_data.php",
-                    data: {tbl: "dj_eagle", flds: "id, status, nest_id"},
+                    data: objData,
                     type: "POST",
                     success: function (response){
                     // Handling db errors. If we do not get json back
@@ -1016,7 +1045,7 @@ if (logged_in()) {
                                 ctlLayers.removeLayer(lyrEagleNests);
                                 lyrEagleNests.remove();
                             }
-                            lyrEagleNests = L.geoJSON(jsonEagles, {pointToLayer:returnEagleMarker, filter:filterEagle}).addTo(mymap);
+                            lyrEagleNests = L.geoJSON(jsonEagles, {pointToLayer:returnEagleMarker}).addTo(mymap);
                             // Layer control
                             ctlLayers.addOverlay(lyrEagleNests, "Eagle Nests")
                             arEagleIDs.sort(function(a,b){return a-b});
@@ -1101,23 +1130,18 @@ if (logged_in()) {
                     $("#divRaptorError").html("**** Raptor Nest ID not found ****");
                 }
             });
-
-            function filterRaptor(json) {
-                const att = json.properties;
-                const optFilter = $("input[name=fltRaptor]:checked").val();
-                if (optFilter === "ALL") {
-                    return true;
-                } else {
-                    return (att.recentstatus === optFilter)
-                }
-            }
             
             $("#lblRaptor").click(function(){
                 $("#divRaptorData").toggle(); 
             });
 
             $("input[name=fltRaptor]").click(function () {
-                refreshRaptors();
+                const optFilter = $("input[name=fltRaptor]:checked").val();
+                if (optFilter == "ALL") {
+                    refreshRaptors();
+                } else {
+                    refreshRaptors ("recentstatus='"+optFilter+"'")
+                }
             });
 
             // Refreshing the server
@@ -1126,10 +1150,16 @@ if (logged_in()) {
                 refreshRaptors();
             });
 
-            function refreshRaptors() {
+            function refreshRaptors(whr) {
+                let objData;
+                if (whr) {
+                    objData = {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey", where: whr}
+                } else {
+                    objData = {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"}
+                }
                 $.ajax({
                     url: "load_data.php",
-                    data: {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"},
+                    data: objData,
                     type: "POST",
                     success: function (response) {
                         if (response.substring(0, 5) == "ERROR") {
@@ -1144,8 +1174,7 @@ if (logged_in()) {
                                 lyrRaptorNests.remove();
                             }
                             lyrRaptorNests = L.geoJSON(jsonRaptor, {
-                                pointToLayer: returnRaptorMarker,
-                                filter: filterRaptor
+                                pointToLayer: returnRaptorMarker
                             });
 
                             arRaptorIDs.sort(function (a, b) {
@@ -1233,15 +1262,39 @@ if (logged_in()) {
                 return "["+ll.lat.toFixed(5)+", "+ll.lng.toFixed(5)+"]";
             }
             
-            function returnLayerByAttribute(lyr,att,val) {
-                const arLayers = lyr.getLayers();
+            function returnLayerByAttribute(tbl,fld,val) {
+                let arLyrs;
+                // server side from the database
+                let whr = fld+"='"+val+"'";
+                $.ajax({
+                    url: "load_data.php",
+                    data: {tbl: tbl, where: whr},
+                    type: "POST",
+                    success: function (response) {
+                        if (response.substr(0,5)=="ERROR") {
+                            alert(response);
+                        } else {
+                            const jsn = JSON.parse(response);
+                            const lyr = L.geoJSON(jsn);
+                            arLyrs = lyr.getLayers();
+                            if (arLyrs.length > 0) {
+                                return arLyrs[0];
+                            }
+                        }
+                    },
+                    error: function (xhr, status, error) {
+
+                    }
+                });
+                return arLyrs[0];
+                /*const arLayers = lyr.getLayers();
                 for (i=0;i<arLayers.length-1;i++) {
                     const ftrVal = arLayers[i].feature.properties[att];
                     if (ftrVal==val) {
                         return arLayers[i];
                     }
                 }
-                return false;
+                return false;*/
             }
 
             function returnLayersByAttribute(lyr,att,val) {
