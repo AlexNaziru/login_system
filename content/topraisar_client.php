@@ -282,6 +282,7 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divBUOWLData"></div>
+                <div class="" id="divBUOWLAffected"></div>
                 <button id="btnBUOWLsurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
             <div id="divEagle" class="col-xs-12">
@@ -640,12 +641,27 @@ if (logged_in()) {
                         }).addTo(mymap);
                         mymap.fitBounds(lyr.getBounds().pad(1));
                         var att = lyr.feature.properties;
-                        $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: " + att.habitat_id + "</h5><h5>Historically Occupied: " + att.hist_occup + "</h5><h5>Recent Status: " + att.recentstatus + "</h5>");
+                        $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: " + att.habitat_id + "</h5>" +
+                            "<h5>Historically Occupied: " + att.hist_occup + "</h5>" +
+                            "<h5>Recent Status: " + att.recentstatus + "</h5>");
+
+                        $.ajax({
+                            url: "dj_basin_affected_projects.php",
+                            data: {tbl: "dj_buowl", distance: 300, fld: "habitat_id", id: val},
+                            type: "POST",
+                            success: function (response) {
+                                $("#divBUOWLAffected").html(response);
+                            },
+                            error: function (xhr, status, error) {
+                                $("#divBUOWLAffected").html("ERROR: "+error);
+                            }
+                        });
+
                         $("#divBUOWLError").html("");
 
                         // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
-                        fgpDrawnItems.clearLayers();
-                        fgpDrawnItems.addLayer(lyr);
+                       /* fgpDrawnItems.clearLayers();
+                        fgpDrawnItems.addLayer(lyr);*/
 
                         // Selecting the survey button
                         $("#btnBUOWLsurveys").show();
