@@ -1,0 +1,22 @@
+/* Modal background */
+.modal {
+    z-index: 2001; /* Sit on top */
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    display: none; /* Hidden by default */
+    background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+}
+
+/* Modal content */
+.modal-content {
+    color: #0f0f0f;
+    padding: 20px;
+    margin-top: 5%;
+    background-color: #E0E0E0;
+    height: 80%;
+    overflow-y: auto; /* if we have a lot of content, it will give us a scrollbar */
+}
+
+.tblHeader {
+    background-color: #26A69A;
+}

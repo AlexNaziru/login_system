@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -38,6 +38,7 @@ if (logged_in()) {
         <link rel="stylesheet" href="src/plugins/MarkerCluster.Default.css">
         <link rel="stylesheet" href="src/jquery-ui.min.css">
         <link rel="stylesheet" href="src/plugins/leaflet-legend.css">
+        <link rel="stylesheet" href="../css/modal.css">
         
         <script src="src/leaflet-src.js"></script>
         <script src="src/jquery-3.2.0.min.js"></script>
@@ -127,6 +128,10 @@ if (logged_in()) {
                 text-align:center;
                 background-color:darksalmon;
             }
+
+            .btnSurveys {
+                display: none;
+            }
             
         </style>
     </head>
@@ -136,6 +141,7 @@ if (logged_in()) {
             <!-- Map Legend -->
             <button id="btnShowLegend" class="btn btn-success btn-block ">Show Legend</button>
             <button id="btnTransparent" class="btn btn-warning btn-block ">Make Polygons Transparent</button>
+            <button id="btnShowModal" class="btn btn-info btn-block ">Show modal</button>
             <div id="legend">
                 <div id="lgndLinearProjects">
                     <h4 class="text-center">Linear Projects - Legend <i id="btnLinearProjects" class="fa fa-server"></i></h4>
@@ -276,6 +282,7 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divBUOWLData"></div>
+                <button id="btnBUOWLsurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
             <div id="divEagle" class="col-xs-12">
                 <div id="divEagleLabel" class="text-center col-xs-12">
@@ -302,6 +309,7 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divEagleData"></div>
+                <button id="btnEagleSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
             <div id="divRaptor" class="col-xs-12">
                 <div id="divRaptorLabel" class="text-center col-xs-12">
@@ -331,9 +339,18 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divRaptorData"></div>
+                <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
         </div>
         <div id="mapdiv" class="col-md-12"></div>
+        <!-- Modal -->
+        <div id="dlgModal" class="modal">
+            <div id="dlgContent" class="modal-content col-sm-10 col-sm-offset-1 col-md-7 col-md-offset-4">
+                <span id="btnCloseModal" class="pull-right"><i class="fa fa-close fa-2x"></i></span>
+                <div id="tableData"></div>
+            </div>
+        </div>
+
         <script>
             var mymap;
             var lyrOSM;
@@ -629,6 +646,9 @@ if (logged_in()) {
                         // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
                         fgpDrawnItems.clearLayers();
                         fgpDrawnItems.addLayer(lyr);
+
+                        // Selecting the survey button
+                        $("#btnBUOWLsurveys").show();
                     } else {
                         $("#divBUOWLError").html("**** Habitat ID not found ****");
                     }
@@ -1013,6 +1033,9 @@ if (logged_in()) {
                         // Editing geometries.
                         fgpDrawnItems.clearLayers();
                         fgpDrawnItems.addLayer(lyr);
+
+                        // Selecting the survey button
+                        $("#btnEagleSurveys").show();
                     } else {
                         $("#divEagleError").html("**** Eagle Nest ID not found ****");
                     }
@@ -1153,6 +1176,9 @@ if (logged_in()) {
                         // Editing geometries.
                         fgpDrawnItems.clearLayers();
                         fgpDrawnItems.addLayer(lyr);
+
+                        // Selecting the survey button
+                        $("#btnRaptorSurveys").show();
                     } else {
                         $("#divRaptorError").html("**** Raptor Nest ID not found ****");
                     }
@@ -1262,6 +1288,79 @@ if (logged_in()) {
 
             $("#btnShowLegend").click(function () {
                 $("#legend").toggle();
+            });
+
+                        /* Raptor Surveys */
+
+            $("#btnRaptorSurveys").click(function () {
+                const search_id = $("#txtFindRaptor").val();
+                const whr = "nest="+search_id;
+                $("#dlgModal").show();
+                $.ajax({
+                    url: "load_table.php",
+                    data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "date DESC",
+                            flds: '"user" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+                            where:whr},
+                    type: "POST",
+                    success: function (response) {
+                        $("#tableData").html(response);
+                        $("#dlgModal").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#tableData").html("ERROR: "+error);
+                        $("#dlgModal").show();
+                    }
+                });
+            });
+
+                        /* Eagle Surveys */
+
+            $("#btnEagleSurveys").click(function () {
+                const search_id = $("#txtFindEagle").val();
+                const whr = "nest="+search_id;
+                $("#dlgModal").show();
+                $.ajax({
+                    url: "load_table.php",
+                    data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "date DESC",
+                        flds: '"user" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+                        where:whr},
+                    type: "POST",
+                    success: function (response) {
+                        $("#tableData").html(response);
+                        $("#dlgModal").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#tableData").html("ERROR: "+error);
+                        $("#dlgModal").show();
+                    }
+                });
+            });
+
+                        /* BUOWL Surveys */
+
+            $("#btnBUOWLsurveys").click(function () {
+                const search_id = $("#txtFindBUOWL").val();
+                const whr = "habitat="+search_id;
+                $("#dlgModal").show();
+                $.ajax({
+                    url: "load_table.php",
+                    data: {tbl: "dj_buowl_survey", title: 'Surveys for BUOWL habitat '+search_id, order: "date DESC",
+                        flds: '"surveyor" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+                        where:whr},
+                    type: "POST",
+                    success: function (response) {
+                        $("#tableData").html(response);
+                        $("#dlgModal").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#tableData").html("ERROR: "+error);
+                        $("#dlgModal").show();
+                    }
+                });
+            });
+
+            $("#btnCloseModal").click(function () {
+                $("#dlgModal").hide();
             });
 
             // Transparent polygons
