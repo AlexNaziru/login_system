@@ -256,6 +256,7 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divProjectData"></div>
+                <div class="" id="divProjectAffected"></div>
             </div>
             <div id="divBUOWL" class="col-xs-12">
                 <div id="divBUOWLLabel" class="text-center col-xs-12">
@@ -310,6 +311,7 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divEagleData"></div>
+                <div class="" id="divEagleAffected"></div>
                 <button id="btnEagleSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
             <div id="divRaptor" class="col-xs-12">
@@ -340,6 +342,7 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="" id="divRaptorData"></div>
+                <div class="" id="divRaptorAffected"></div>
                 <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
         </div>
@@ -835,9 +838,17 @@ if (logged_in()) {
                             $("#divProjectData").html("<h4 class='text-center'>Attributes</h4><h5>Type: "+att.type+"</h5><h5>ROW width: "+att.row_width+ "m </h5>");
                             $("#divProjectError").html("");
 
-                            // Editing geometries.
-                            fgpDrawnItems.clearLayers();
-                            fgpDrawnItems.addLayer(lyr);
+                            $.ajax({
+                                url: "dj_basin_affected_constraints.php",
+                                data: {id:val},
+                                type: "POST",
+                                success: function (response) {
+                                    $("#divProjectAffected").html(response);
+                                },
+                                error: function (xhr, status, error) {
+                                    $("#divProjectAffected").html("ERROR: "+error);
+                                }
+                            })
                         } else {
                             $("#divProjectError").html("**** Project ID not found ****");
                         }
@@ -1044,11 +1055,20 @@ if (logged_in()) {
                         mymap.setView(lyr.getLatLng(), 14);
                         var att = lyr.feature.properties;
                         $("#divEagleData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.status + "</h5>");
-                        $("#divEagleError").html("");
 
-                        // Editing geometries.
-                        fgpDrawnItems.clearLayers();
-                        fgpDrawnItems.addLayer(lyr);
+                        $.ajax({
+                            url: "dj_basin_affected_projects.php",
+                            data: {tbl: "dj_eagle", distance: 804, fld: "nest_id", id:val},//meters
+                            type: "POST",
+                            success: function (response) {
+                                $("#divEagleAffected").html(response);
+                            },
+                            error: function (xhr, status, error) {
+                                $("#divEagleAffected").html("ERROR: "+error);
+                            }
+                        });
+
+                        $("#divEagleError").html("");
 
                         // Selecting the survey button
                         $("#btnEagleSurveys").show();
@@ -1159,6 +1179,7 @@ if (logged_in()) {
             });
             
             $("#btnFindRaptor").click(function(){
+                let radRaptor;
                 const val = $("#txtFindRaptor").val();
                 returnLayerByAttribute("dj_raptor",'nest_id',val,
                 function (lyr) {
@@ -1166,16 +1187,16 @@ if (logged_in()) {
                         if (lyrSearch) {
                             lyrSearch.remove();
                         }
-                        var att = lyr.feature.properties;
+                        const att = lyr.feature.properties;
                         switch (att.recentspecies) {
                             case 'Red-tail Hawk':
-                                var radRaptor = 533;
+                                radRaptor = 533;
                                 break;
                             case 'Swainsons Hawk':
-                                var radRaptor = 400;
+                                radRaptor = 400;
                                 break;
                             default:
-                                var radRaptor = 804;
+                                radRaptor = 804;
                                 break;
                         }
                         lyrSearch = L.circle(lyr.getLatLng(), {
@@ -1189,9 +1210,17 @@ if (logged_in()) {
                         $("#divRaptorData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.recentstatus + "</h5><h5>Species: " + att.recentspecies + "</h5><h5>Last Survey: " + att.lastsurvey + "</h5>");
                         $("#divRaptorError").html("");
 
-                        // Editing geometries.
-                        fgpDrawnItems.clearLayers();
-                        fgpDrawnItems.addLayer(lyr);
+                        $.ajax({
+                            url: "dj_basin_affected_projects.php",
+                            data: {tbl: "dj_raptor", distance: radRaptor, fld: "nest_id", id:val},//meters
+                            type: "POST",
+                            success: function (response) {
+                                $("#divRaptorAffected").html(response);
+                            },
+                            error: function (xhr, status, error) {
+                                $("#divRaptorAffected").html("ERROR: "+error);
+                            }
+                        });
 
                         // Selecting the survey button
                         $("#btnRaptorSurveys").show();
