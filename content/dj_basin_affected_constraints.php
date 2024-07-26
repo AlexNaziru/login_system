@@ -11,7 +11,7 @@
     // PDO for PostgreSQL connection
     $dsn = "pgsql:host=localhost;dbname=login;port=5432";
     $opt = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT, # This won't give an error and it won't give away how our db is structured
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, # This won't give an error and it won't give away how our db is structured
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ];
@@ -34,7 +34,7 @@
         } else {
             $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
             b.habitat_id as id, b.recentstatus as status, Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
-            FROM dj_buowl b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, 300) 
+            FROM dj_buowl b JOIN dj_linear_projects l ON ST_DWithin(b.geom::geography, l.geom::geography, 300) 
             WHERE l.project='.$id.' AND ST_Area(b.geom)>0.000000001 
             ORDER BY dist';
         }
@@ -53,7 +53,7 @@
             ORDER BY dist';
         } else {
             $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, b.nest_id as id, b.status as status 
-            FROM dj_eagle b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, 804.5) 
+            FROM dj_eagle b JOIN dj_linear_projects l ON ST_DWithin(b.geom::geography, l.geom::geography, 804.5) 
             WHERE l.project='.$id.' 
             ORDER BY dist';
         }
@@ -71,7 +71,7 @@
             ORDER BY dist';
         } else {
             $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, b.nest_id as id, b.recentstatus as status 
-            FROM dj_raptor b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, '.$case.') 
+            FROM dj_raptor b JOIN dj_linear_projects l ON ST_DWithin(b.geom::geography, l.geom::geography, '.$case.') 
             WHERE l.project='.$id.' 
             ORDER BY dist';
         }

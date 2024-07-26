@@ -20,7 +20,7 @@ if (isset($_POST["tbl"])) {
     // PDO for PostgreSQL connection
     $dsn = "pgsql:host=localhost;dbname=login;port=5432";
     $opt = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_SILENT, # This won't give an error and it won't give away how our db is structured
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, # This won't give an error and it won't give away how our db is structured
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false
     ];
