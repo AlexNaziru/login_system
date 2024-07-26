@@ -23,89 +23,63 @@
         // Querying based on geojson format. // This is going to convert the geojson data to binary geometry object in PostGIS
         if ($id == "geojson") {
                     // SRID means spacial reference ID. This takes a geometry from geojson
-            $geojson="ST_SetSRID(ST_GeomFromGeoJSON('{$geojson}'), 4326)::geography"; // 4326 is the special reference id for lat, long weggis84
-            // Searching for BUOWL
+            $geojson="ST_SetSRID(ST_GeomFromGeoJSON('{$geojson}'), 4326)::geography";
             $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, 
             b.habitat_id as id, b.recentstatus as status, 
             Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
-            FROM dj_buowl b WHERE ST_DWithin(b.geom::geography, '.$geojson.', 300) 
-            AND ST_Area(b.geom)>0.000000001 ORDER BY dist';
+            FROM dj_buowl b 
+            WHERE ST_DWithin(b.geom::geography, '.$geojson.', 300) 
+            AND ST_Area(b.geom)>0.000000001 
+            ORDER BY dist';
         } else {
             $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
-            b.habitat_id as id, b.recentstatus as status, 
-            Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
+            b.habitat_id as id, b.recentstatus as status, Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
             FROM dj_buowl b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, 300) 
-            WHERE l.project='.$id.' AND ST_Area(b.geom)>0.000000001 ORDER BY dist';
+            WHERE l.project='.$id.' AND ST_Area(b.geom)>0.000000001 
+            ORDER BY dist';
         }
 
+//            echo $strQuery."<br><br>";
         $result = $pdo->query($strQuery);
-
-        // Don't forget to append because the table class it's not the first thing added (.)
-        $returnTable = "<table class='table table-hover'>";
-
-        $returnTable.="<tr><th>Constraint</th><th>ID</th><th>Distance</th><th>Status</th><th>Hectares</th></tr>";
-
-        foreach ($result AS $row) {
-            // Getting data values in html format
-            $returnTable.="<tr><td>BUOWL</td><td>{$row["id"]}</td><td>{$row["dist"]}</td>
-                           <td>{$row["status"]}</td><td>{$row["hectares"]}</td></tr>";
+        $returnTable="<table class='table table-hover'>";
+        $returnTable.="<tr class='tblHeader'><th>Constraint</th><th>ID</th><th>Distance</th><th>Status</th><th>Hectares</th></tr>";
+        foreach($result AS $row) {
+            $returnTable.="<tr><td>BUOWL</td><td>{$row['id']}</td><td>{$row['dist']}</td><td>{$row['status']}</td><td>{$row['hectares']}</td></tr>";
         }
-        echo $returnTable;
 
-        // Searching for eagles
-        if ($id == "geojson") {
-            // Searching for Eagles
-            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, 
-            b.nest_id as id, b.status as status 
-            FROM dj_eagle b 
-            WHERE ST_DWithin(b.geom::geography, '.$geojson.', 804.5) ORDER BY dist';
+        if ($id=="geojson") {
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, b.nest_id as id, b.status as status 
+            FROM dj_eagle b WHERE ST_DWithin(b.geom::geography, '.$geojson.', 804.5) 
+            ORDER BY dist';
         } else {
-            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
-            b.nest_id as id, b.status as status 
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, b.nest_id as id, b.status as status 
             FROM dj_eagle b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, 804.5) 
             WHERE l.project='.$id.' 
             ORDER BY dist';
         }
 
+//            echo $strQuery."<br><br>";
         $result = $pdo->query($strQuery);
-
-        foreach ($result AS $row) {
-            // Getting data values in html format
-            $returnTable.="<tr><td>Eagle</td><td>{$row["id"]}</td><td>{$row["dist"]}</td>
-                           <td>{$row["status"]}</td><td>N/A</td></tr>";
+        foreach($result AS $row) {
+            $returnTable.="<tr><td>Eagle</td><td>{$row['id']}</td><td>{$row['dist']}</td><td>{$row['status']}</td><td>NA</td></tr>";
         }
+        $case="CASE WHEN b.recentspecies='Swainsons Hawk' THEN 402 WHEN b.recentspecies='Red-tail Hawk' THEN 533 ELSE 1600 END";
 
-        // Searching for Raptors
-
-        // Because we have multiple distances, we need to adapt our queries in reference to the species
-        $case = "CASE 
-            WHEN b.recentspecies = 'Swainsons Hawk' THEN 402 
-            WHEN b.recentspecies = 'Red-tail Hawk' THEN 533 
-            ELSE 1600 
-        END";
-
-        // Searching for eagles
-        if ($id == "geojson") {
-            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, 
-            b.nest_id as id, b.recentstatus as status 
-            FROM dj_raptor b 
-            WHERE ST_DWithin(b.geom::geography, '.$geojson.', '.$case.') 
+        if ($id=="geojson") {
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, b.nest_id as id, b.recentstatus as status 
+            FROM dj_raptor b WHERE ST_DWithin(b.geom::geography, '.$geojson.', '.$case.') 
             ORDER BY dist';
         } else {
-            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
-            b.nest_id as id, b.recentstatus as status 
-            FROM dj_raptor b 
-            JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, '.$case.') 
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, b.nest_id as id, b.recentstatus as status 
+            FROM dj_raptor b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, '.$case.') 
             WHERE l.project='.$id.' 
             ORDER BY dist';
         }
 
+//            echo $strQuery."<br><br>";
         $result = $pdo->query($strQuery);
-
-        foreach ($result AS $row) {
-            // Getting data values in html format
-            $returnTable.="<tr><td>Raptor</td><td>{$row["id"]}</td><td>{$row["dist"]}</td>
-                           <td>{$row["status"]}</td><td>N/A</td></tr>";
+        foreach($result AS $row) {
+            $returnTable.="<tr><td>Raptor</td><td>{$row['id']}</td><td>{$row['dist']}</td><td>{$row['status']}</td><td>NA</td></tr>";
         }
         echo $returnTable;
     } catch (PDOException $e) {

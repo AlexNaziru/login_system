@@ -5,7 +5,7 @@ if (logged_in()) {
     $username = $_SESSION["username"];
     error_log("Logged in user: " . $username);
     // Checking to see if the user is a member of the group
-    if (!verify_user_group($pdo, $username, "Topraisar Farmers")) {
+    if (!verify_user_group($pdo, $username, "Topraisar Client")) {
         set_msg("User '{$username}' does not have permission to view this page");
         error_log("User '{$username}' does not have permission to view this page");
         redirect("../index.php");
@@ -40,6 +40,7 @@ if (logged_in()) {
         <link rel="stylesheet" href="src/plugins/leaflet-legend.css">
         <link rel="stylesheet" href="src/plugins/leaflet.pm.css">
         <link rel="stylesheet" href="../css/modal.css">
+        <link rel="stylesheet" href="../css/form.css">
         
         <script src="src/leaflet-src.js"></script>
         <script src="src/jquery-3.2.0.min.js"></script>
@@ -214,16 +215,169 @@ if (logged_in()) {
             </div>
 
             <div class="leaflet-sidebar-pane" id="project">
-                <h1 class="leaflet-sidebar-header">Linear Project<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <h1 class="leaflet-sidebar-header"> Linear Project <button id="btnRefreshLinear" class="btn btn-primary"><i class="fa fa-refresh"></i></button>
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+
+                <div id="divProject" class="col-xs-12">
+                    <div id="divProjectError" class="errorMsg col-xs-12"></div>
+                    <div id="divFindProject" class="form-group has-error">
+                        <div class="col-xs-6">
+                            <input type="text" id="txtFindProject" class="form-control" placeholder="Project ID">
+                        </div>
+                        <div class="col-xs-6">
+                            <button id="btnFindProject" class="btn btn-primary btn-block" disabled>Find Project</button>
+                        </div>
+                    </div>
+                    <div id="divFilterProject" class="col-xs-12">
+                        <div class="col-xs-4">
+                            <input type='checkbox' name='fltProject' value='Pipeline' checked>Pipelines<br>
+                            <input type='checkbox' name='fltProject' value='Road' checked>Access Roads
+                            <button id="btnProjectFilterAll" class="btn btn-primary btn-block">Check All</button>
+                        </div>
+                        <div class="col-xs-4">
+                            <input type='checkbox' name='fltProject' value='Electric' checked>Electric Lines<br>
+                            <input type='checkbox' name='fltProject' value='Extraction' checked>Extractions
+                            <button id="btnProjectFilterNone" class="btn btn-primary btn-block">Uncheck All</button>
+                        </div>
+                        <div class="col-xs-4">
+                            <input type='checkbox' name='fltProject' value='Flowline' checked>Flowlines<br>
+                            <input type='checkbox' name='fltProject' value='Other' checked>Other
+                            <button id="btnProjectFilter" class="btn btn-primary btn-block">Filter</button>
+                        </div>
+                    </div>
+                    <div class="" id="divProjectData">
+                        <form class="form-horizontal" id="formProject">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="type">Type:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="type" id="linear_type" placeholder="Type" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="row_width">ROW Width:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="row_width" id="linear_row_width" placeholder="ROW Width" readonly>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="" id="divProjectAffected"></div>
+                </div>
             </div>
+
             <div class="leaflet-sidebar-pane" id="buowl">
-                <h1 class="leaflet-sidebar-header">Burrowing Owl Habitat<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <h1 class="leaflet-sidebar-header">Burrowing Owl Habitat <button id="btnRefreshBUOWL"class="btn btn-primary"><i class="fa fa-refresh"></i></button>
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <div id="divBUOWL" class="col-xs-12">
+                    <div id="divBUOWLError" class="errorMsg col-xs-12"></div>
+                    <div id="divFindBUOWL" class="form-group has-error">
+                        <div class="col-xs-6">
+                            <input type="text" id="txtFindBUOWL" class="form-control" placeholder="Habitat ID">
+                        </div>
+                        <div class="col-xs-6">
+                            <button id="btnFindBUOWL" class="btn btn-primary btn-block" disabled>Find BUOWL</button>
+                        </div>
+                    </div>
+                    <div class="col-xs-12" id="divFilterBUOWL">
+                        <div class="col-xs-4">
+                            <input type="radio" name="fltBUOWL" value="ALL" checked>All
+                        </div>
+                        <div class="col-xs-4">
+                            <input type="radio" name="fltBUOWL" value="Yes">Historically Occupied
+                        </div>
+                        <div class="col-xs-4">
+                            <input type="radio" name="fltBUOWL" value="Undetermined">Undetermined
+                        </div>
+                    </div>
+                    <div class="" id="divBUOWLData">
+                        <form class="form-horizontal" id="formBUOWL">
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="hist_occup">Historically Occupied: </label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="hist_occup" id="buowl_hist_occup" placeholder="Historically Occupied" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="habitat">Habitat:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="habitat" id="buowl_habitat" placeholder="Habitat" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-3" for="recentstatus">Recent Status:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="recentstatus" id="buowl_recentstatus" placeholder="Recent Status" readonly>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="" id="divBUOWLAffected"></div>
+                    <button id="btnBUOWLsurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
+                </div>
             </div>
+
             <div class="leaflet-sidebar-pane" id="eagles">
-                <h1 class="leaflet-sidebar-header">Eagle Nests<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <h1 class="leaflet-sidebar-header">Eagle Nests <button id="btnRefreshEagles" class="btn btn-primary"><i class="fa fa-refresh"></i></button>
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <div id="divEagle" class="col-xs-12">
+
+                    <div id="divEagleError" class="errorMsg col-xs-12"></div>
+                    <div id="divFindEagle" class="form-group has-error">
+                        <div class="col-xs-6">
+                            <input type="text" id="txtFindEagle" class="form-control" placeholder="Eagle Nest ID">
+                        </div>
+                        <div class="col-xs-6">
+                            <button id="btnFindEagle" class="btn btn-primary btn-block" disabled>Find Eagle Nest</button>
+                        </div>
+                    </div>
+                    <div class="col-xs-12" id="divFilterEagle">
+                        <div class="col-xs-4">
+                            <input type="radio" name="fltEagle" value="ALL" checked>All
+                        </div>
+                        <div class="col-xs-4">
+                            <input type="radio" name="fltEagle" value="ACTIVE NEST">Active
+                        </div>
+                        <div class="col-xs-4">
+                            <input type="radio" name="fltEagle" value="INACTIVE LOCATION">Inactive
+                        </div>
+                    </div>
+                    <div class="" id="divEagleData"></div>
+                    <div class="" id="divEagleAffected"></div>
+                    <button id="btnEagleSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
+                </div>
             </div>
+
             <div class="leaflet-sidebar-pane" id="raptors">
-                <h1 class="leaflet-sidebar-header">Raptor Nests<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <h1 class="leaflet-sidebar-header">Raptor Nests  <button id="btnRefreshRaptors" class="btn btn-primary"><i class="fa fa-refresh"></i></button>
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
+                <div id="divRaptor" class="col-xs-12">
+                    <div id="divRaptorError" class="errorMsg col-xs-12"></div>
+                    <div id="divFindRaptor" class="form-group has-error">
+                        <div class="col-xs-6">
+                            <input type="text" id="txtFindRaptor" class="form-control" placeholder="Raptor Nest ID">
+                        </div>
+                        <div class="col-xs-6">
+                            <button id="btnFindRaptor" class="btn btn-primary btn-block" disabled>Find Raptor Nest</button>
+                        </div>
+                    </div>
+                    <div id="divFilterRaptor" class="col-xs-12">
+                        <div class="col-xs-3">
+                            <input type='radio' name='fltRaptor' value='ALL' checked>All
+                        </div>
+                        <div class="col-xs-3">
+                            <input type='radio' name='fltRaptor' value='ACTIVE NEST'>Active
+                        </div>
+                        <div class="col-xs-3">
+                            <input type='radio' name='fltRaptor' value='INACTIVE NEST'>Inactive
+                        </div>
+                        <div class="col-xs-3">
+                            <input type='radio' name='fltRaptor' value='FLEDGED NEST'>Fledged
+                        </div>
+                    </div>
+                    <div class="" id="divRaptorData"></div>
+                    <div class="" id="divRaptorAffected"></div>
+                    <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
+                </div>
             </div>
 
         </div>
@@ -565,10 +719,15 @@ if (logged_in()) {
                             }
                         }).addTo(mymap);
                         mymap.fitBounds(lyr.getBounds().pad(1));
-                        var att = lyr.feature.properties;
-                        $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: " + att.habitat_id + "</h5>" +
+                        const att = lyr.feature.properties;
+                        $("#buowl_habitat").val(att.habitat);
+                        $("#buowl_hist_occup").val(att.hist_occup);
+                        $("#buowl_recentstatus").val(att.recentstatus);
+                        // Turning the form on
+                        $("#formBUOWL").show();
+                       /* $("#divBUOWLData").html("<h4 class='text-center'>Attributes</h4><h5>Habitat: " + att.habitat_id + "</h5>" +
                             "<h5>Historically Occupied: " + att.hist_occup + "</h5>" +
-                            "<h5>Recent Status: " + att.recentstatus + "</h5>");
+                            "<h5>Recent Status: " + att.recentstatus + "</h5>");*/
 
                         $.ajax({
                             url: "dj_basin_affected_projects.php",
@@ -702,7 +861,7 @@ if (logged_in()) {
             });
 
             function styleClientLinears(json) {
-                var att = json.properties;
+                const att = json.properties;
                 switch (att.type) {
                     case 'Pipeline':
                         return {color:'peru'};
@@ -754,21 +913,22 @@ if (logged_in()) {
                             }
                             lyrSearch = L.geoJSON(lyr.toGeoJSON(), {style:{color:'red', weight:10, opacity:0.5}}).addTo(mymap);
                             mymap.fitBounds(lyr.getBounds().pad(1));
-                            var att = lyr.feature.properties;
-                            $("#divProjectData").html("<h4 class='text-center'>Attributes</h4><h5>Type: "+att.type+"</h5><h5>ROW width: "+att.row_width+ "m </h5>");
-                            $("#divProjectError").html("");
+                            const att = lyr.feature.properties;
+                            $("#linear_type").val(att.type);
+                            $("#linear_row_width").val(att.row_width);
+                            $("#formProject").show();
 
                             $.ajax({
-                                url: "dj_basin_affected_constraints.php",
-                                data: {id:val},
-                                type: "POST",
-                                success: function (response) {
+                                url:'dj_basin_affected_constraints.php',
+                                data:{id:val},
+                                type:'POST',
+                                success:function(response){
                                     $("#divProjectAffected").html(response);
                                 },
-                                error: function (xhr, status, error) {
+                                error:function(xhr, status, error){
                                     $("#divProjectAffected").html("ERROR: "+error);
                                 }
-                            })
+                            });
                         } else {
                             $("#divProjectError").html("**** Project ID not found ****");
                         }
