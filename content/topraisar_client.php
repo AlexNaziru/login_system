@@ -26,7 +26,7 @@ if (logged_in()) {
         <link rel="stylesheet" href="src/leaflet.css">
         <link rel="stylesheet" href="src/css/bootstrap.css">
         <link rel="stylesheet" href="src/plugins/L.Control.MousePosition.css">
-        <link rel="stylesheet" href="src/plugins/L.Control.Sidebar.css">
+        <link rel="stylesheet" href="src/plugins/leaflet-sidebar.min.css">
         <link rel="stylesheet" href="src/plugins/Leaflet.PolylineMeasure.css">
         <link rel="stylesheet" href="src/plugins/easy-button.css">
         <link rel="stylesheet" href="src/plugins/leaflet-styleeditor/css/Leaflet.StyleEditor.css">
@@ -38,12 +38,13 @@ if (logged_in()) {
         <link rel="stylesheet" href="src/plugins/MarkerCluster.Default.css">
         <link rel="stylesheet" href="src/jquery-ui.min.css">
         <link rel="stylesheet" href="src/plugins/leaflet-legend.css">
+        <link rel="stylesheet" href="src/plugins/leaflet.pm.css">
         <link rel="stylesheet" href="../css/modal.css">
         
         <script src="src/leaflet-src.js"></script>
         <script src="src/jquery-3.2.0.min.js"></script>
         <script src="src/plugins/L.Control.MousePosition.js"></script>
-        <script src="src/plugins/L.Control.Sidebar.js"></script>
+        <script src="src/plugins/leaflet-sidebar.min.js"></script>
         <script src="src/plugins/Leaflet.PolylineMeasure.js"></script>
         <script src="src/plugins/easy-button.js"></script>
         <script src="src/plugins/leaflet-providers.js"></script>
@@ -57,46 +58,7 @@ if (logged_in()) {
         <script src="src/plugins/leaflet.geometryutil.js"></script>
         <script src="src/jquery-ui.min.js"></script>
         <script src="src/plugins/leaflet-legend.js"></script>
-        
-<!--    ***************  Begin Leaflet.Draw-->
-        
-        <script src="src/plugins/leaflet-draw/Leaflet.draw.js"></script>
-        <script src="src/plugins/leaflet-draw/Leaflet.Draw.Event.js"></script>
-        <link rel="stylesheet" href="src/plugins/leaflet-draw/leaflet.draw.css"/>
-
-        <script src="src/plugins/leaflet-draw/Toolbar.js"></script>
-        <script src="src/plugins/leaflet-draw/Tooltip.js"></script>
-
-        <script src="src/plugins/leaflet-draw/ext/GeometryUtil.js"></script>
-        <script src="src/plugins/leaflet-draw/ext/LatLngUtil.js"></script>
-        <script src="src/plugins/leaflet-draw/ext/LineUtil.Intersect.js"></script>
-        <script src="src/plugins/leaflet-draw/ext/Polygon.Intersect.js"></script>
-        <script src="src/plugins/leaflet-draw/ext/Polyline.Intersect.js"></script>
-        <script src="src/plugins/leaflet-draw/ext/TouchEvents.js"></script>
-
-        <script src="src/plugins/leaflet-draw/draw/DrawToolbar.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Feature.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.SimpleShape.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Polyline.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Circle.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Marker.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Polygon.js"></script>
-        <script src="src/plugins/leaflet-draw/draw/handler/Draw.Rectangle.js"></script>
-
-
-        <script src="src/plugins/leaflet-draw/edit/EditToolbar.js"></script>
-        <script src="src/plugins/leaflet-draw/edit/handler/EditToolbar.Edit.js"></script>
-        <script src="src/plugins/leaflet-draw/edit/handler/EditToolbar.Delete.js"></script>
-
-        <script src="src/plugins/leaflet-draw/Control.Draw.js"></script>
-
-        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Poly.js"></script>
-        <script src="src/plugins/leaflet-draw/edit/handler/Edit.SimpleShape.js"></script>
-        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Circle.js"></script>
-        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Rectangle.js"></script>
-        <script src="src/plugins/leaflet-draw/edit/handler/Edit.Marker.js"></script>
-        
-<!--    **************  End of Lealet Draw-->
+        <script src="src/plugins/leaflet.pm.min.js"></script>
 
         <style>
             #mapdiv {
@@ -136,13 +98,38 @@ if (logged_in()) {
         </style>
     </head>
     <body>
-        <div id="side-bar" class="col-md-3">
-            <button id='btnLocate' class='btn btn-primary btn-block'>Locate</button><br>
-            <!-- Map Legend -->
-            <button id="btnShowLegend" class="btn btn-success btn-block ">Show Legend</button>
-            <button id="btnTransparent" class="btn btn-warning btn-block ">Make Polygons Transparent</button>
-            <button id="btnShowModal" class="btn btn-info btn-block ">Show modal</button>
-            <div id="legend">
+    <div id="sidebar" class="leaflet-sidebar collapsed">
+        <!-- Nav tabs -->
+        <div class="leaflet-sidebar-tabs">
+            <ul role="tablist"> <!-- top aligned tabs -->
+                <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+                <li><a href="#legend" role="tab"><i class="fa fa-server"></i></a></li>
+                <li><a href="#project" role="tab"><i class="fa fa-gavel"></i></a></li>
+                <li><a href="#buowl" role="tab"><i class="fa fa-cubes"></i></a></li>
+                <li><a href="#eagles" role="tab"><i class="fa fa-snowflake-o"></i></a></li>
+                <li><a href="#raptors" role="tab"><i class="fa fa-tree"></i></a></li>
+            </ul>
+
+            <ul role="tablist"> <!-- bottom aligned tabs -->
+                <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
+            </ul>
+        </div>
+
+        <!-- Tab panes -->
+        <div class="leaflet-sidebar-content">
+            <div class="leaflet-sidebar-pane" id="home">
+                <h1 class="leaflet-sidebar-header">
+                    Acasa
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div>
+                </h1>
+                <button id='btnLocate' class="btn btn-primary btn-block">Locate</button><br>
+                <!-- Map Legend -->
+                <button id="btnZoomToDj" class="btn btn-success btn-block">Zoom to DjBasin</button>
+                <button id="btnTransparent" class="btn btn-warning btn-block">Make Polygons Transparent</button>
+            </div>
+
+            <div class="leaflet-sidebar-pane" id="legend">
+                <h1 class="leaflet-sidebar-header">Legend<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
                 <div id="lgndLinearProjects">
                     <h4 class="text-center">Linear Projects - Legend <i id="btnLinearProjects" class="fa fa-server"></i></h4>
                     <div id="legendLinearProjectDetails">
@@ -225,127 +212,22 @@ if (logged_in()) {
                     </div>
                 </div>
             </div>
-            <div id="divProject" class="col-xs-12">
-                <div id="divProjectLabel" class="text-center col-xs-12">
-                    <h4 id="lblProject">Linear Projects <button id="btnRefreshLinear" class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
-                </div>
-                <div id="divProjectError" class="errorMsg col-xs-12"></div>
-                <div id="divFindProject" class="form-group has-error">
-                    <div class="col-xs-6">
-                        <input type="text" id="txtFindProject" class="form-control" placeholder="Project ID">
-                    </div>
-                    <div class="col-xs-6">
-                        <button id="btnFindProject" class="btn btn-primary btn-block" disabled>Find Project</button>
-                    </div>
-                </div>
-                <div class="col-xs-12" id="#divFilterProject">
-                    <div class="col-xs-4">
-                        <input type="checkbox" name="fltProject" value="Pipeline" checked>Pipeline<br>
-                        <input type="checkbox" name="fltProject" value="Road" checked>Access Roads
-                        <button class="btn btn-block btn-primary" id="btnProjectFilterAll">Check All</button>
-                    </div>
-                    <div class="col-xs-4">
-                        <input type="checkbox" name="fltProject" value="Electric" checked>Electric Lines<br>
-                        <input type="checkbox" name="fltProject" value="Extraction" checked>Extractions
-                        <button class="btn btn-block btn-primary" id="btnProjectFilterNone">Uncheck All</button>
-                    </div>
-                    <div class="col-xs-4">
-                        <input type="checkbox" name="fltProject" value="Flowline" checked>Flowlines<br>
-                        <input type="checkbox" name="fltProject" value="Other" checked>Other
-                        <button class="btn btn-block btn-primary" id="btnProjectFilter">Filter</button>
-                    </div>
-                </div>
-                <div class="" id="divProjectData"></div>
-                <div class="" id="divProjectAffected"></div>
+
+            <div class="leaflet-sidebar-pane" id="project">
+                <h1 class="leaflet-sidebar-header">Linear Project<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
             </div>
-            <div id="divBUOWL" class="col-xs-12">
-                <div id="divBUOWLLabel" class="text-center col-xs-12">
-                    <h4 id="lblBUOWL">BUOWL Habitat <button id="btnRefreshBUOWL"class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
-                </div>
-                <div id="divBUOWLError" class="errorMsg col-xs-12"></div>
-                <div id="divFindBUOWL" class="form-group has-error">
-                    <div class="col-xs-6">
-                        <input type="text" id="txtFindBUOWL" class="form-control" placeholder="Habitat ID">
-                    </div>
-                    <div class="col-xs-6">
-                        <button id="btnFindBUOWL" class="btn btn-primary btn-block" disabled>Find BUOWL</button>
-                    </div>
-                </div>
-                <div class="col-xs-12" id="divFilterBUOWL">
-                    <div class="col-xs-4">
-                        <input type="radio" name="fltBUOWL" value="ALL" checked>All
-                    </div>
-                    <div class="col-xs-4">
-                        <input type="radio" name="fltBUOWL" value="Yes">Historically Occupied
-                    </div>
-                    <div class="col-xs-4">
-                        <input type="radio" name="fltBUOWL" value="Undetermined">Undetermined
-                    </div>
-                </div>
-                <div class="" id="divBUOWLData"></div>
-                <div class="" id="divBUOWLAffected"></div>
-                <button id="btnBUOWLsurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
+            <div class="leaflet-sidebar-pane" id="buowl">
+                <h1 class="leaflet-sidebar-header">Burrowing Owl Habitat<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
             </div>
-            <div id="divEagle" class="col-xs-12">
-                <div id="divEagleLabel" class="text-center col-xs-12">
-                    <h4 id="lblEagle">Eagle Nests <button id="btnRefreshEagles" class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
-                </div>
-                <div id="divEagleError" class="errorMsg col-xs-12"></div>
-                <div id="divFindEagle" class="form-group has-error">
-                    <div class="col-xs-6">
-                        <input type="text" id="txtFindEagle" class="form-control" placeholder="Eagle Nest ID">
-                    </div>
-                    <div class="col-xs-6">
-                        <button id="btnFindEagle" class="btn btn-primary btn-block" disabled>Find Eagle Nest</button>
-                    </div>
-                </div>
-                <div class="col-xs-12" id="divFilterEagle">
-                    <div class="col-xs-4">
-                        <input type="radio" name="fltEagle" value="ALL" checked>All
-                    </div>
-                    <div class="col-xs-4">
-                        <input type="radio" name="fltEagle" value="ACTIVE NEST">Active
-                    </div>
-                    <div class="col-xs-4">
-                        <input type="radio" name="fltEagle" value="INACTIVE LOCATION">Inactive
-                    </div>
-                </div>
-                <div class="" id="divEagleData"></div>
-                <div class="" id="divEagleAffected"></div>
-                <button id="btnEagleSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
+            <div class="leaflet-sidebar-pane" id="eagles">
+                <h1 class="leaflet-sidebar-header">Eagle Nests<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
             </div>
-            <div id="divRaptor" class="col-xs-12">
-                <div id="divRaptorLabel" class="text-center col-xs-12">
-                    <h4 id="lblRaptor">Raptor Nests <button id="btnRefreshRaptors"class="btn btn-info"><i class="fa fa-refresh"></i></button></h4>
-                </div>
-                <div id="divRaptorError" class="errorMsg col-xs-12"></div>
-                <div id="divFindRaptor" class="form-group has-error">
-                    <div class="col-xs-6">
-                        <input type="text" id="txtFindRaptor" class="form-control" placeholder="Raptor Nest ID">
-                    </div>
-                    <div class="col-xs-6">
-                        <button id="btnFindRaptor" class="btn btn-primary btn-block" disabled>Find Raptor Nest</button>
-                    </div>
-                </div>
-                <div id="divFilterRaptor" class="col-xs-12">
-                    <div class="col-xs-3">
-                        <input type='radio' name='fltRaptor' value='ALL' checked>All
-                    </div>
-                    <div class="col-xs-3">
-                        <input type='radio' name='fltRaptor' value='ACTIVE NEST'>Active
-                    </div>
-                    <div class="col-xs-3">
-                        <input type='radio' name='fltRaptor' value='INACTIVE NEST'>Inactive
-                    </div>
-                    <div class="col-xs-3">
-                        <input type='radio' name='fltRaptor' value='FLEDGED NEST'>Fledged
-                    </div>
-                </div>
-                <div class="" id="divRaptorData"></div>
-                <div class="" id="divRaptorAffected"></div>
-                <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
+            <div class="leaflet-sidebar-pane" id="raptors">
+                <h1 class="leaflet-sidebar-header">Raptor Nests<div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
             </div>
+
         </div>
+    </div>
         <div id="mapdiv" class="col-md-12"></div>
         <!-- Modal -->
         <div id="dlgModal" class="modal">
@@ -397,22 +279,22 @@ if (logged_in()) {
                 
                 mymap = L.map('mapdiv', {center:[40.18, -104.83], zoom:11, attributionControl:false});
                 
-                ctlSidebar = L.control.sidebar('side-bar').addTo(mymap);
+                ctlSidebar = L.control.sidebar({container: 'sidebar'}) // the DOM container or #ID of a predefined sidebar container that should be used)
+                .addTo(mymap);
                 
-                ctlEasybutton = L.easyButton('glyphicon-transfer', function(){
+                /*ctlEasybutton = L.easyButton('glyphicon-transfer', function(){
                    ctlSidebar.toggle(); 
-                }).addTo(mymap);
+                }).addTo(mymap);*/
                 
-                ctlAttribute = L.control.attribution().addTo(mymap);
+                ctlAttribute = L.control.attribution({position:"bottomright"}).addTo(mymap);
                 ctlAttribute.addAttribution('OSM');
                 ctlAttribute.addAttribution('&copy; <a href="http://millermountain.com">Naziru Development SRL</a>');
                 
-                ctlScale = L.control.scale({position:'bottomleft', metric:false, maxWidth:200}).addTo(mymap);
+                ctlScale = L.control.scale({position:'bottomright', metric:false, maxWidth:200}).addTo(mymap);
 
-                ctlMouseposition = L.control.mousePosition().addTo(mymap);
+                ctlMouseposition = L.control.mousePosition({position:'bottomright'}).addTo(mymap);
                 
-                ctlStyle = L.control.styleEditor({position:'topright', openOnLeafletDraw: false}).addTo(mymap);
-                ctlMeasure = L.control.polylineMeasure().addTo(mymap);
+                /*ctlStyle = L.control.styleEditor({position:'topright', openOnLeafletDraw: false}).addTo(mymap);*/
                 
                 //   *********** Layer Initialization **********
                 
@@ -423,8 +305,46 @@ if (logged_in()) {
                 lyrWatercolor = L.tileLayer.provider('Stamen.Watercolor');
                 mymap.addLayer(lyrOSM);
                 
-                fgpDrawnItems = new L.FeatureGroup();
-                //fgpDrawnItems.addTo(mymap);
+                /*fgpDrawnItems = new L.FeatureGroup();*/
+
+                /*** Leaflet PM control ***/
+
+                // define toolbar options
+                const options = {
+                        position: 'topright', // toolbar position, options are 'topleft', 'topright', 'bottomleft', 'bottomright'
+                        drawMarker: true, // adds button to draw markers
+                        drawPolyline: true, // adds button to draw a polyline
+                        drawRectangle: false, // adds button to draw a rectangle // geoJSON won't work with Rectangles
+                        drawPolygon: true, // adds button to draw a polygon
+                        drawCircle: false, // adds button to draw a cricle // geoJSON won't work with circles
+                        cutPolygon: false, // adds button to cut a hole in a polygon
+                        editMode: true, // adds button to toggle edit mode for all layers
+                        removalMode: true, // adds a button to remove layers
+                    };
+
+                // add leaflet.pm controls to the map
+                mymap.pm.addControls(options);
+
+                // listen to when a new layer is created
+                mymap.on('pm:create', function(e) {
+                    const jsn = e.layer.toGeoJSON().geometry;
+                    console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
+                    $.ajax({
+                        url: "dj_basin_affected_constraints.php",
+                        data: {id: 'geojson', geojson: JSON.stringify(jsn)},
+                        type: "POST",
+                        success: function (response) {
+                            $("#tableData").html(response);
+                            $("#dlgModal").show();
+                        },
+                        error: function (xhr, status, error) {
+                            $("#tableData").html("ERROR: "+error);
+                            $("#dlgModal").show();
+                        }
+                    })
+                    //e.shape; // the name of the shape being drawn (i.e. 'Circle')
+                    //e.layer; // the leaflet layer created
+                });
 
                 /*** Loading our data ***/
                 // Here we are loading the same data from bellow but from the postGIS database use AJAX
@@ -475,19 +395,21 @@ if (logged_in()) {
                     }
                 });
 
-                ctlLegend = new L.Control.Legend({
+                ctlMeasure = L.control.polylineMeasure({position:'topright'}).addTo(mymap);
+
+                /*ctlLegend = new L.Control.Legend({
                     position: "topright",
                     controlButton: {
                         title: "Legend"
                     }
-                }).addTo(mymap);
+                }).addTo(mymap);*/
 
                 $(".legend-container").append($("#legend"));
                 $(".legend-toggle").append($("<i class='legend-toggle-icon fa fa-server fa-2x' style='color: #000'> </i>"));
                 
                 // **********  Setup Draw Control ****************
                 
-                ctlDraw = new L.Control.Draw({
+               /* ctlDraw = new L.Control.Draw({
                     draw:{
                         polygon: false,
                         circle:false,
@@ -577,7 +499,7 @@ if (logged_in()) {
                             break;
                     }
 
-                });
+                });*/
                 
                 // ************ Location Events **************
                 
@@ -816,8 +738,6 @@ if (logged_in()) {
                 arProjectIDs.push(att.project.toString());
 
             }
-
-
             
             $("#txtFindProject").on('keyup paste', function(){
                 const val = $("#txtFindProject").val();
@@ -1331,8 +1251,8 @@ if (logged_in()) {
                 mymap.locate();
             });
 
-            $("#btnShowLegend").click(function () {
-                $("#legend").toggle();
+            $("#btnZoomToDj").click(function () {
+                mymap.setView([40.18, -104.83], 11);
             });
 
                         /* Raptor Surveys */

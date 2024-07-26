@@ -4,6 +4,10 @@
     } else {
         $id = 1;
     }
+    // Above, we are querying the db by id, but for drawing, we are going to use the geoJSON method
+    if ($id == "geojson") {
+        $geojson = $_POST["geojson"];
+    }
     // PDO for PostgreSQL connection
     $dsn = "pgsql:host=localhost;dbname=login;port=5432";
     $opt = [
@@ -16,15 +20,23 @@
 // Loading the postGIS eagle data
     // Error handling
     try {
-        // Searching for BUOWL
-        // Quering spacial data and non-special data by combining queries
-        $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, b.habitat_id as id, b.recentstatus as status, 
-                     Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
-                     FROM dj_buowl b 
-                     JOIN dj_linear_projects l 
-                     ON ST_DWithin(b.geom::geography, l.geom::geography, 300) 
-                     WHERE l.project='.$id.' AND ST_Area(b.geom)>0.000000001 
-                     ORDER BY dist';
+        // Querying based on geojson format. // This is going to convert the geojson data to binary geometry object in PostGIS
+        if ($id == "geojson") {
+                    // SRID means spacial reference ID. This takes a geometry from geojson
+            $geojson="ST_SetSRID(ST_GeomFromGeoJSON('{$geojson}'), 4326)::geography"; // 4326 is the special reference id for lat, long weggis84
+            // Searching for BUOWL
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, 
+            b.habitat_id as id, b.recentstatus as status, 
+            Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
+            FROM dj_buowl b WHERE ST_DWithin(b.geom::geography, '.$geojson.', 300) 
+            AND ST_Area(b.geom)>0.000000001 ORDER BY dist';
+        } else {
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
+            b.habitat_id as id, b.recentstatus as status, 
+            Round(ST_Area(b.geom::geography)/1000)/10 as hectares 
+            FROM dj_buowl b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, 300) 
+            WHERE l.project='.$id.' AND ST_Area(b.geom)>0.000000001 ORDER BY dist';
+        }
 
         $result = $pdo->query($strQuery);
 
@@ -41,13 +53,19 @@
         echo $returnTable;
 
         // Searching for eagles
-
-        $strQuery = 'SELECT round(st_distance(b.geom::geography, l.geom::geography)) as dist, b.nest_id as id,
-        b.status as status
-        FROM dj_eagle b
-        JOIN dj_linear_projects l
-        ON st_dwithin(b.geom::geography, l.geom::geography, 804.5)
-        ORDER BY "dist";';
+        if ($id == "geojson") {
+            // Searching for Eagles
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, 
+            b.nest_id as id, b.status as status 
+            FROM dj_eagle b 
+            WHERE ST_DWithin(b.geom::geography, '.$geojson.', 804.5) ORDER BY dist';
+        } else {
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
+            b.nest_id as id, b.status as status 
+            FROM dj_eagle b JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, 804.5) 
+            WHERE l.project='.$id.' 
+            ORDER BY dist';
+        }
 
         $result = $pdo->query($strQuery);
 
@@ -66,11 +84,21 @@
             ELSE 1600 
         END";
 
-        $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, b.nest_id as id, b.recentstatus as status 
-                     FROM dj_raptor b 
-                     JOIN dj_linear_projects l ON ST_DWithin(b.geom::geography, l.geom::geography, '.$case.')
-                     WHERE l.project='.$id.' 
-                     ORDER BY dist';
+        // Searching for eagles
+        if ($id == "geojson") {
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, '.$geojson.')) as dist, 
+            b.nest_id as id, b.recentstatus as status 
+            FROM dj_raptor b 
+            WHERE ST_DWithin(b.geom::geography, '.$geojson.', '.$case.') 
+            ORDER BY dist';
+        } else {
+            $strQuery = 'SELECT Round(ST_Distance(b.geom::geography, l.geom::geography)) as dist, 
+            b.nest_id as id, b.recentstatus as status 
+            FROM dj_raptor b 
+            JOIN dj_linear l ON ST_DWithin(b.geom::geography, l.geom::geography, '.$case.') 
+            WHERE l.project='.$id.' 
+            ORDER BY dist';
+        }
 
         $result = $pdo->query($strQuery);
 
