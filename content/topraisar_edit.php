@@ -259,6 +259,7 @@ if (logged_in()) {
                                 <input type="text" class="form-control" name="row_width" id="linear_row_width" placeholder="ROW Width" readonly>
                             </div>
                         </div>
+                        <div id="projectMetadata"></div>
                     </form>
                 </div>
                 <div class="" id="divProjectAffected"></div>
@@ -348,7 +349,23 @@ if (logged_in()) {
                         <input type="radio" name="fltEagle" value="INACTIVE LOCATION">Inactive
                     </div>
                 </div>
-                <div class="" id="divEagleData"></div>
+                <div class="" id="divEagleData">
+                    <form class="form-horizontal" id="formEagle">
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="status">Status</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="status" id="eagle_status" placeholder="Status" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="lastsurvey" id="eagle_lastsurvey" placeholder="Last Survey" readonly>
+                            </div>
+                        </div>
+                        <div id="eagleMetadata"></div>
+                    </form>
+                </div>
                 <div class="" id="divEagleAffected"></div>
                 <button id="btnEagleSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
@@ -381,7 +398,29 @@ if (logged_in()) {
                         <input type='radio' name='fltRaptor' value='FLEDGED NEST'>Fledged
                     </div>
                 </div>
-                <div class="" id="divRaptorData"></div>
+                <div class="" id="divRaptorData">
+                    <form class="form-horizontal" id="formRaptor">
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="recentstatus">Status:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="recentspecies" id="raptor_recentstatus" placeholder="Status" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="recentspecies">Species:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="recentspecies" id="raptor_recentspecies" placeholder="Species" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
+                            <div class="col-sm-9">
+                                <input type="date" class="form-control" name="lastsurvey" id="raptor_lastsurvey" placeholder="Last Survey" readonly>
+                            </div>
+                        </div>
+                        <div id="raptorMetadata"></div>
+                    </form>
+                </div>
                 <div class="" id="divRaptorAffected"></div>
                 <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
@@ -731,6 +770,7 @@ if (logged_in()) {
                     $("#buowl_hist_occup").val(att.hist_occup);
                     $("#buowl_recentstatus").val(att.recentstatus);
                     $("#buowl_lastsurvey").val(att.lastsurvey);
+                    $("#BUOWLmetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
                     // Turning the form on
                     $("#formBUOWL").show();
 
@@ -921,6 +961,7 @@ if (logged_in()) {
                     const att = lyr.feature.properties;
                     $("#linear_type").val(att.type);
                     $("#linear_row_width").val(att.row_width);
+                    $("#projectMetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
                     $("#formProject").show();
 
                     $.ajax({
@@ -1107,7 +1148,7 @@ if (logged_in()) {
     });
 
     function returnEagleMarker(json, latlng){
-        var att = json.properties;
+        const att = json.properties;
         if (att.status=='ACTIVE NEST') {
             var clrNest = 'deeppink';
         } else {
@@ -1118,7 +1159,7 @@ if (logged_in()) {
     }
 
     $("#txtFindEagle").on('keyup paste', function(){
-        var val = $("#txtFindEagle").val();
+        const val = $("#txtFindEagle").val();
         testLayerAttribute(arEagleIDs, val, "Eagle Nest ID", "#divFindEagle", "#divEagleError", "#btnFindEagle");
     });
 
@@ -1138,8 +1179,11 @@ if (logged_in()) {
                         fillOpacity: 0
                     }).addTo(mymap);
                     mymap.setView(lyr.getLatLng(), 14);
-                    var att = lyr.feature.properties;
-                    $("#divEagleData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.status + "</h5>");
+                    const att = lyr.feature.properties;
+                    $("#eagle_status").val(att.status);
+                    $("#eagle_lastsurvey").val(att.lastsurvey);
+                    $("#eagleMetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
+                    $("#formEagle").show();
 
                     $.ajax({
                         url: "dj_basin_affected_projects.php",
@@ -1292,7 +1336,11 @@ if (logged_in()) {
                         fillOpacity: 0
                     }).addTo(mymap);
                     mymap.setView(lyr.getLatLng(), 14);
-                    $("#divRaptorData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.recentstatus + "</h5><h5>Species: " + att.recentspecies + "</h5><h5>Last Survey: " + att.lastsurvey + "</h5>");
+                    $("#raptor_recentspecies").val(att.recentspecies);
+                    $("#raptor_recentstatus").val(att.recentstatus);
+                    $("#raptor_lastsurvey").val(att.lastsurvey);
+                    $("#raptorMetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
+                    $("#formRaptor").show();
                     $("#divRaptorError").html("");
 
                     $.ajax({
