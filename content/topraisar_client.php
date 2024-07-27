@@ -1419,12 +1419,12 @@ if (logged_in()) {
 
             $("#btnRaptorSurveys").click(function () {
                 const search_id = $("#txtFindRaptor").val();
-                const whr = "nest="+search_id;
+                const whr = "habitat="+search_id;
                 $("#dlgModal").show();
                 $.ajax({
                     url: "load_table.php",
-                    data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "date DESC",
-                            flds: '"user" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+                    data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "surveydate DESC",
+                            flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                             where:whr},
                     type: "POST",
                     success: function (response) {
@@ -1442,12 +1442,12 @@ if (logged_in()) {
 
             $("#btnEagleSurveys").click(function () {
                 const search_id = $("#txtFindEagle").val();
-                const whr = "nest="+search_id;
+                const whr = "habitat="+search_id;
                 $("#dlgModal").show();
                 $.ajax({
                     url: "load_table.php",
-                    data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "date DESC",
-                        flds: '"user" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+                    data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "surveydate DESC",
+                        flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                         where:whr},
                     type: "POST",
                     success: function (response) {
@@ -1469,8 +1469,8 @@ if (logged_in()) {
                 $("#dlgModal").show();
                 $.ajax({
                     url: "load_table.php",
-                    data: {tbl: "dj_buowl_survey", title: 'Surveys for BUOWL habitat '+search_id, order: "date DESC",
-                        flds: '"surveyor" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+                    data: {tbl: "dj_buowl_survey", title: 'Surveys for BUOWL habitat '+search_id, order: "surveydate DESC",
+                        flds: '"surveyor" AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                         where:whr},
                     type: "POST",
                     success: function (response) {

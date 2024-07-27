@@ -438,6 +438,20 @@ if (logged_in()) {
 </div>
 
 <script>
+    /* Global variables */
+    let user;
+    $.ajax({
+        url: "return_user.php",
+        success: function (response) {
+            if (response.substring(0,5) == "ERROR") {
+                alert(response);
+            } else {
+                // it is passed as a string, but we need to parse it and JSON that we can use
+                user = JSON.parse(response);
+                alert("Logged in as "+user.firstname+" "+user.lastname);
+            }
+        }
+    })
     var mymap;
     var lyrOSM;
     var lyrWatercolor;
@@ -1472,12 +1486,12 @@ if (logged_in()) {
 
     $("#btnRaptorSurveys").click(function () {
         const search_id = $("#txtFindRaptor").val();
-        const whr = "nest="+search_id;
+        const whr = "habitat="+search_id;
         $("#dlgModal").show();
         $.ajax({
             url: "load_table.php",
-            data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "date DESC",
-                flds: '"user" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+            data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "surveydate DESC",
+                flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                 where:whr},
             type: "POST",
             success: function (response) {
@@ -1495,12 +1509,12 @@ if (logged_in()) {
 
     $("#btnEagleSurveys").click(function () {
         const search_id = $("#txtFindEagle").val();
-        const whr = "nest="+search_id;
+        const whr = "habitat="+search_id;
         $("#dlgModal").show();
         $.ajax({
             url: "load_table.php",
-            data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "date DESC",
-                flds: '"user" AS "Surveyor", date AS "Survey Date", result AS "Result"',
+            data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "surveydate DESC",
+                flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                 where:whr},
             type: "POST",
             success: function (response) {
@@ -1577,7 +1591,7 @@ if (logged_in()) {
             data: {tbl: tbl, where: whr},
             type: "POST",
             success: function (response) {
-                if (response.substr(0,5)=="ERROR") {
+                if (response.substring(0,5)=="ERROR") {
                     alert(response);
                     callback(false);
                 } else {
