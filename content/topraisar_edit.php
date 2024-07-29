@@ -448,10 +448,10 @@ if (logged_in()) {
             } else {
                 // it is passed as a string, but we need to parse it and JSON that we can use
                 user = JSON.parse(response);
-                alert("Logged in as "+user.firstname+" "+user.lastname);
+                alert("Logged in as "+user.firstname+" "+user.lastname+" on "+returnCurrentDate());
             }
         }
-    })
+    });
     var mymap;
     var lyrOSM;
     var lyrWatercolor;
@@ -1482,17 +1482,12 @@ if (logged_in()) {
         mymap.setView([40.18, -104.83], 11);
     });
 
-    /* Raptor Surveys */
+    /* Surveys func to be able to do CRUD */
 
-    $("#btnRaptorSurveys").click(function () {
-        const search_id = $("#txtFindRaptor").val();
-        const whr = "habitat="+search_id;
-        $("#dlgModal").show();
+    function displaySurveys(tbl, id) {
         $.ajax({
-            url: "load_table.php",
-            data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "surveydate DESC",
-                flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
-                where:whr},
+            url: "load_surveys.php",
+            data: {tbl: tbl, id: id},
             type: "POST",
             success: function (response) {
                 $("#tableData").html(response);
@@ -1503,52 +1498,22 @@ if (logged_in()) {
                 $("#dlgModal").show();
             }
         });
+    };
+
+    $("#btnRaptorSurveys").click(function () {
+        displaySurveys("dj_raptor_survey", $("#txtFindRaptor").val());
     });
 
     /* Eagle Surveys */
 
     $("#btnEagleSurveys").click(function () {
-        const search_id = $("#txtFindEagle").val();
-        const whr = "habitat="+search_id;
-        $("#dlgModal").show();
-        $.ajax({
-            url: "load_table.php",
-            data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "surveydate DESC",
-                flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
-                where:whr},
-            type: "POST",
-            success: function (response) {
-                $("#tableData").html(response);
-                $("#dlgModal").show();
-            },
-            error: function (xhr, status, error) {
-                $("#tableData").html("ERROR: "+error);
-                $("#dlgModal").show();
-            }
-        });
+        displaySurveys("dj_eagle_surveys", $("#txtFindRaptor").val());
     });
 
     /* BUOWL Surveys */
 
     $("#btnBUOWLsurveys").click(function () {
-        const search_id = $("#txtFindBUOWL").val();
-        const whr = "habitat="+search_id;
-        $("#dlgModal").show();
-        $.ajax({
-            url: "load_table.php",
-            data: {tbl: "dj_buowl_survey", title: 'Surveys for BUOWL habitat '+search_id, order: "date DESC",
-                flds: '"surveyor" AS "Surveyor", date AS "Survey Date", result AS "Result"',
-                where:whr},
-            type: "POST",
-            success: function (response) {
-                $("#tableData").html(response);
-                $("#dlgModal").show();
-            },
-            error: function (xhr, status, error) {
-                $("#tableData").html("ERROR: "+error);
-                $("#dlgModal").show();
-            }
-        });
+        displaySurveys("dj_buowl_survey", $("#txtFindRaptor").val());
     });
 
     $("#btnCloseModal").click(function () {
@@ -1781,6 +1746,23 @@ if (logged_in()) {
     function stripSpaces(str) {
         return str.replace(/\s+/g,'');
     }
+
+    // Returning the current date
+    function returnCurrentDate() {
+        const currentDate = new Date();
+
+        let currentDay = currentDate.getDate();
+        // less than 10 means only two digits.
+        if (currentDay < 10 ){currentDay = "0"+currentDay}
+
+        let currentMonth = currentDate.getMonth() + 1; // Add 1 to the month value bc it starts from 0;
+        if (currentMonth < 10 ){currentMonth = "0"+currentMonth}
+
+        let currentYear = currentDate.getFullYear(); // Here we need the full 4 digits of the year
+
+        return currentDay+"-"+currentMonth+"-"+currentYear;
+    }
+
 </script>
 </body>
 </html>
