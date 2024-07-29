@@ -1491,6 +1491,14 @@ if (logged_in()) {
             type: "POST",
             success: function (response) {
                 $("#tableData").html(response);
+                // Buttons
+                $(".btnEditSurvey").click(function () {
+                                    // Passing the data-id from the php script
+                    editSurvey(tbl, id, $(this).attr("data-id"));
+                })
+                $(".btnDeleteSurvey").click(function () {
+                    deleteSurvey(tbl, id, $(this).attr("data-id"));
+                })
                 $("#dlgModal").show();
             },
             error: function (xhr, status, error) {
@@ -1498,7 +1506,30 @@ if (logged_in()) {
                 $("#dlgModal").show();
             }
         });
-    };
+    }
+
+    function editSurvey(tbl, id, survey_id) {
+        alert("Editing"+tbl+" survey "+survey_id+" for constraint "+id);
+    }
+
+    function deleteSurvey(tbl, id, survey_id) {
+        if (confirm("Are you sure you want to delete survey "+survey_id+" from "+tbl+"?")) {
+            // deleting surveys from the db
+            $.ajax({
+                url: "delete_record.php",
+                data: {tbl: tbl, id: survey_id},
+                type: "POST",
+                success: function (response) {
+                    $("#tableData").html(response)
+                    displaySurveys(tbl, id);
+                },
+                error: function (xhr, status, error) {
+                    $("#tableData").html("ERROR: "+error);
+                    $("#dlgModal").show()
+                }
+            })
+        }
+    }
 
     $("#btnRaptorSurveys").click(function () {
         displaySurveys("dj_raptor_survey", $("#txtFindRaptor").val());
@@ -1507,13 +1538,13 @@ if (logged_in()) {
     /* Eagle Surveys */
 
     $("#btnEagleSurveys").click(function () {
-        displaySurveys("dj_eagle_surveys", $("#txtFindRaptor").val());
+        displaySurveys("dj_eagle_surveys", $("#txtFindEagle").val());
     });
 
     /* BUOWL Surveys */
 
     $("#btnBUOWLsurveys").click(function () {
-        displaySurveys("dj_buowl_survey", $("#txtFindRaptor").val());
+        displaySurveys("dj_buowl_survey", $("#txtFindBUOWL").val());
     });
 
     $("#btnCloseModal").click(function () {

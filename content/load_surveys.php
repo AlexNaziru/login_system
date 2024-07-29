@@ -17,7 +17,10 @@ if (isset($_POST['tbl'])) {
             $returnTable.="<table class='table table-hover'>";
             $returnTable.="<tr class='tblHeader'><th>Surveyor</th><th>Survey Date</th><th>Result</th><th></th><th></th></tr>";
             foreach($result AS $row) {
-                $returnTable.="<tr><td>{$row['surveyor']}</td><td>{$row['surveydate']}</td><td>{$row['result']}</td></tr>";
+                $returnTable.="<tr><td>{$row['surveyor']}</td><td>{$row['surveydate']}</td><td>{$row['result']}</td>
+                                                                                         <!-- This data-id needs to be passed into JS -->
+                                <td><button class='btn btn-warning btn-xs btnEditSurvey' data-id='{$row['id']}'>Edit</button></td>
+                                <td><button class='btn btn-danger btn-xs btnDeleteSurvey' data-id='{$row['id']}'>Delete</button></td></tr>";
             }
             $returnTable.="</table>";
             echo $returnTable;
