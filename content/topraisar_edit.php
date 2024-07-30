@@ -445,13 +445,13 @@ if (logged_in()) {
                 <div class="form-group">
                     <label class="control-label col-sm-3" for="survey_habitat">Habitat:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control inpSurvey" name="habitat" id="survey_habitat" placeholder="Habitat Id" readonly>
+                        <input type="text" class="form-control" name="habitat" id="survey_habitat" placeholder="Habitat Id" readonly>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-sm-3" for="survey_surveyor">Surveyor:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control inpSurvey" name="surveyor" id="survey_surveyor" placeholder="Surveyor" readonly>
+                        <input type="text" class="form-control" name="surveyor" id="survey_surveyor" placeholder="Surveyor" readonly>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1583,7 +1583,25 @@ if (logged_in()) {
     }
 
     function updateSurvey(tbl, survey_id) {
-        alert("Updating "+survey_id+" in "+tbl);
+        const jsnFormData = returnFormData("inpSurvey");
+        jsnFormData.tbl = tbl;
+        alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
+        $.ajax({
+            url: "update_record.php",
+            data: jsnFormData,
+            type: "POST",
+            success: function (response) {
+                if (response.substring(0,5) == "ERROR") {
+                    alert(response)
+                } else {
+                    displaySurveys(tbl, id);
+                }
+            },
+            error: function (xhr, status, error) {
+                $("#tableData").html("ERROR: "+error);
+                $("#dlgModal").show()
+            }
+        })
     }
 
     function deleteSurvey(tbl, id, survey_id) {
@@ -1885,6 +1903,15 @@ if (logged_in()) {
         let currentYear = currentDate.getFullYear(); // Here we need the full 4 digits of the year
 
         return currentDay+"-"+currentMonth+"-"+currentYear;
+    }
+
+    // Updating the db
+    function returnFormData(inpClass) {
+        let objFormData = {};
+        $("."+inpClass).each(function () {
+            objFormData[this.name] = this.value;
+        });
+        return objFormData;
     }
 
 </script>
