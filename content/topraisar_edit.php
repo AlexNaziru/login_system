@@ -434,6 +434,47 @@ if (logged_in()) {
     <div id="dlgContent" class="modal-content col-sm-10 col-sm-offset-1 col-md-7 col-md-offset-4">
         <span id="btnCloseModal" class="pull-right"><i class="fa fa-close fa-2x"></i></span>
         <div id="tableData"></div>
+        <form id="formSurvey">
+            <div class="col-xs-12">
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="survey_id">ID:</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control inpSurvey" name="id" id="survey_id" placeholder="Id" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="survey_habitat">Habitat:</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control inpSurvey" name="habitat" id="survey_habitat" placeholder="Habitat Id" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="survey_surveyor">Surveyor:</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control inpSurvey" name="surveyor" id="survey_surveyor" placeholder="Surveyor" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="survey_surveydate">Survey Date:</label>
+                    <div class="col-sm-9">
+                        <input type="date" class="form-control inpSurvey" name="surveydate" id="survey_surveydate" placeholder="Survey Date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="survey_result">Result:</label>
+                    <div class="col-sm-9">
+                        <select class="form-control inpSurvey" name="result" id="survey_result">
+                            <option value="NO NESTING ACTIVITY">NO NESTING ACTIVITY</option>
+                            <option value="UNDETERMINED">UNDETERMINED</option>
+                            <option value="ACTIVE NEST">ACTIVE NEST</option>
+                            <option value="FLEDGED NEST">FLEDGED NEST</option>
+                            <option value="INACTIVE NEST">INACTIVE NEST</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="formSurveyButtons"></div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -1482,6 +1523,7 @@ if (logged_in()) {
         mymap.setView([40.18, -104.83], 11);
     });
 
+            /*** Survey functions ***/
     /* Surveys func to be able to do CRUD */
 
     function displaySurveys(tbl, id) {
@@ -1490,6 +1532,7 @@ if (logged_in()) {
             data: {tbl: tbl, id: id},
             type: "POST",
             success: function (response) {
+                $("#formSurvey").hide();
                 $("#tableData").html(response);
                 // Buttons
                 $(".btnEditSurvey").click(function () {
@@ -1510,6 +1553,37 @@ if (logged_in()) {
 
     function editSurvey(tbl, id, survey_id) {
         alert("Editing"+tbl+" survey "+survey_id+" for constraint "+id);
+        returnRecordByID(tbl, survey_id, function (jsn) {
+            if (jsn) {
+                // Selecting individual elements
+                $("#survey_id").val(jsn.id);
+                $("#survey_habitat").val(jsn.habitat);
+                $("#survey_surveyor").val(jsn.surveyor);
+                $("#survey_surveydate").val(jsn.surveydate);
+                $("#survey_result").val(jsn.result);
+                $("#tableData").html("");
+                $("#formSurveyButtons").html("<button id='btnUpdateSurvey' class='btn btn-warning col-sm-offset-4'>Update</button>" +
+                    "<button id='btnCancelSurvey' class='btn btn-danger col-sm-offset-1'>Cancel</button>");
+                $("#btnUpdateSurvey").click(function (e) {
+                    // this stops from reloading the page
+                    e.preventDefault();
+                    updateSurvey(tbl, survey_id);
+                    displaySurveys(tbl, id);
+                });
+                $("#btnCancelSurvey").click(function (e) {
+                    // this stops from reloading the page
+                    e.preventDefault();
+                    displaySurveys(tbl, id);
+                });
+                $("#formSurvey").show();
+            } else {
+                alert("Could not find record "+survey_id+" in table"+tbl)
+            }
+        });
+    }
+
+    function updateSurvey(tbl, survey_id) {
+        alert("Updating "+survey_id+" in "+tbl);
     }
 
     function deleteSurvey(tbl, id, survey_id) {
@@ -1520,7 +1594,6 @@ if (logged_in()) {
                 data: {tbl: tbl, id: survey_id},
                 type: "POST",
                 success: function (response) {
-                    $("#tableData").html(response)
                     displaySurveys(tbl, id);
                 },
                 error: function (xhr, status, error) {
@@ -1606,14 +1679,6 @@ if (logged_in()) {
                 callback(false);
             }
         });
-        /*const arLayers = lyr.getLayers();
-        for (i=0;i<arLayers.length-1;i++) {
-            const ftrVal = arLayers[i].feature.properties[att];
-            if (ftrVal==val) {
-                return arLayers[i];
-            }
-        }
-        return false;*/
     }
 
     function returnLayersByAttribute(lyr,att,val) {
@@ -1642,6 +1707,34 @@ if (logged_in()) {
             $(err).html("");
             $(btn).attr("disabled", false);
         }
+    }
+
+    function returnRecordByID(tbl, id, callback) {
+        // server side from the database
+        const whr = "id='"+id+"'";
+        $.ajax({
+            url: "load_data.php",
+            data: {tbl: tbl, where: whr, spatial: "NO"},
+            type: "POST",
+            success: function (response) {
+                if (response.substring(0,5)=="ERROR") {
+                    alert(response);
+                    callback(false);
+                } else {
+                    // jsn is an array
+                    const jsn = JSON.parse(response);
+                    if (jsn.length > 0) {
+                        callback(jsn[0].properties);
+                    } else {
+                        callback(false);
+                    }
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("ERROR: "+error);
+                callback(false);
+            }
+        });
     }
 
     // Function for the length of the line, in order to edit polygons
