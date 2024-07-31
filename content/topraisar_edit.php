@@ -443,15 +443,15 @@ if (logged_in()) {
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="control-label col-sm-3" for="survey_habitat">Habitat:</label>
+                    <label class="control-label col-sm-3" for="survey_habitat">Habitat ID:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="habitat" id="survey_habitat" placeholder="Habitat Id" readonly>
+                        <input type="text" class="form-control inpSurvey" name="habitat" id="survey_habitat" placeholder="Habitat Id" readonly>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-sm-3" for="survey_surveyor">Surveyor:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" name="surveyor" id="survey_surveyor" placeholder="Surveyor" readonly>
+                        <input type="text" class="form-control inpSurvey" name="surveyor" id="survey_surveyor" placeholder="Surveyor" readonly>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1535,6 +1535,10 @@ if (logged_in()) {
                 $("#formSurvey").hide();
                 $("#tableData").html(response);
                 // Buttons
+                $("#tableData").append("<button id='btnInsertSurvey' class='btn btn-success'>Add new survey</button>");
+                $("#btnInsertSurvey").click(function () {
+                    insertSurvey(tbl, id);
+                })
                 $(".btnEditSurvey").click(function () {
                                     // Passing the data-id from the php script
                     editSurvey(tbl, id, $(this).attr("data-id"));
@@ -1549,6 +1553,54 @@ if (logged_in()) {
                 $("#dlgModal").show();
             }
         });
+    }
+
+    function insertSurvey(tbl, id) {
+        // This is how we test to see if it works
+        alert(" Inserted "+id+" in table "+tbl);
+        $("#survey_id").val("New");
+        $("#survey_habitat").val(id);
+        $("#survey_surveyor").val(user.firstname+" "+user.lastname);
+        $("#survey_surveydate").val(returnCurrentDate());
+        $("#survey_result").val("ACTIVE NEST");
+        $("#tableData").html("");
+        $("#formSurveyButtons").html("<button id='btnSubmitSurvey' class='btn btn-success col-sm-offset-4'>Submit</button>" +
+            "<button id='btnCancelSurvey' class='btn btn-danger col-sm-offset-1'>Cancel</button>");
+        $("#btnSubmitSurvey").click(function (e) {
+            // this stops from reloading the page
+            e.preventDefault();
+            submitSurvey(tbl, id);
+        });
+        $("#btnCancelSurvey").click(function (e) {
+            // this stops from reloading the page
+            e.preventDefault();
+            displaySurveys(tbl, id);
+        });
+        $("#formSurvey").show();
+    }
+
+    function submitSurvey(tbl, id) {
+        const jsnFormData = returnFormData("inpSurvey");
+        jsnFormData.tbl = tbl;
+        // we want to get rid of the id
+        delete jsnFormData.id;
+        alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
+        $.ajax({
+            url: "insert_record.php",
+            data: jsnFormData,
+            type: "POST",
+            success: function (response) {
+                if (response.substring(0,5) == "ERROR") {
+                    alert(response)
+                } else {
+                    displaySurveys(tbl, id);
+                }
+            },
+            error: function (xhr, status, error) {
+                $("#tableData").html("ERROR: "+error);
+                $("#dlgModal").show()
+            }
+        })
     }
 
     function editSurvey(tbl, id, survey_id) {
@@ -1567,8 +1619,9 @@ if (logged_in()) {
                 $("#btnUpdateSurvey").click(function (e) {
                     // this stops from reloading the page
                     e.preventDefault();
-                    updateSurvey(tbl, survey_id);
-                    displaySurveys(tbl, id);
+                    updateSurvey(tbl, id, survey_id);
+                    // the code bellow was not reloading the page after we edited
+                    /*displaySurveys(tbl, id);*/
                 });
                 $("#btnCancelSurvey").click(function (e) {
                     // this stops from reloading the page
@@ -1582,7 +1635,7 @@ if (logged_in()) {
         });
     }
 
-    function updateSurvey(tbl, survey_id) {
+    function updateSurvey(tbl, id, survey_id) {
         const jsnFormData = returnFormData("inpSurvey");
         jsnFormData.tbl = tbl;
         alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
@@ -1623,18 +1676,21 @@ if (logged_in()) {
     }
 
     $("#btnRaptorSurveys").click(function () {
+        changeOptions("dj_raptor_survey");
         displaySurveys("dj_raptor_survey", $("#txtFindRaptor").val());
     });
 
     /* Eagle Surveys */
 
     $("#btnEagleSurveys").click(function () {
+        changeOptions("dj_eagle_surveys");
         displaySurveys("dj_eagle_surveys", $("#txtFindEagle").val());
     });
 
     /* BUOWL Surveys */
 
     $("#btnBUOWLsurveys").click(function () {
+        changeOptions("dj_buowl_survey");
         displaySurveys("dj_buowl_survey", $("#txtFindBUOWL").val());
     });
 
