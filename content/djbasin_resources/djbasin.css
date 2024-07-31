@@ -1,0 +1,33 @@
+#mapdiv {
+    height:100vh;
+}
+
+.col-xs-12, .col-xs-6, .col-xs-4 {
+    padding:3px;
+}
+
+#divProject {
+    background-color: beige;
+}
+
+#divBUOWL {
+    background-color: #ffffb3;
+}
+
+#divEagle {
+    background-color: #ccffb3;
+}
+
+#divRaptor {
+    background-color: #e6ffff;
+}
+
+.errorMsg {
+    padding:0;
+    text-align:center;
+    background-color:darksalmon;
+}
+
+.btnSurveys {
+    display: none;
+}

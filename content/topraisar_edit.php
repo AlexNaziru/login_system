@@ -41,6 +41,7 @@ if (logged_in()) {
     <link rel="stylesheet" href="src/plugins/leaflet.pm.css">
     <link rel="stylesheet" href="../css/modal.css">
     <link rel="stylesheet" href="../css/form.css">
+    <link rel="stylesheet" href="djbasin_resources/djbasin.css">
 
     <script src="src/leaflet-src.js"></script>
     <script src="src/jquery-3.2.0.min.js"></script>
@@ -60,43 +61,13 @@ if (logged_in()) {
     <script src="src/jquery-ui.min.js"></script>
     <script src="src/plugins/leaflet-legend.js"></script>
     <script src="src/plugins/leaflet.pm.min.js"></script>
-
-    <style>
-        #mapdiv {
-            height:100vh;
-        }
-
-        .col-xs-12, .col-xs-6, .col-xs-4 {
-            padding:3px;
-        }
-
-        #divProject {
-            background-color: beige;
-        }
-
-        #divBUOWL {
-            background-color: #ffffb3;
-        }
-
-        #divEagle {
-            background-color: #ccffb3;
-        }
-
-        #divRaptor {
-            background-color: #e6ffff;
-        }
-
-        .errorMsg {
-            padding:0;
-            text-align:center;
-            background-color:darksalmon;
-        }
-
-        .btnSurveys {
-            display: none;
-        }
-
-    </style>
+    <script src="js/general_functions.js"></script>
+    <script src="djbasin_resources/js_surveys.js"></script>
+    <script src="djbasin_resources/GBH.js"></script>
+    <script src="djbasin_resources/raptors.js"></script>
+    <script src="djbasin_resources/buowl.js"></script>
+    <script src="djbasin_resources/projects.js"></script>
+    <script src="djbasin_resources/eagles.js"></script>
 </head>
 <body>
 <div id="sidebar" class="leaflet-sidebar collapsed">
@@ -780,79 +751,13 @@ if (logged_in()) {
         $("#legendBUOWLDetails").toggle();
     });
 
-    function styleBUOWL(json){
-        var att = json.properties;
-        switch (att.hist_occup){
-            case 'Yes':
-                return {color:'deeppink', fillColor:'yellow'};
-                break;
-            case 'Undetermined':
-                return {color:'yellow'};
-                break;
-        }
-    }
-
-    function processBUOWL(json, lyr){
-        var att = json.properties;
-        lyr.bindTooltip("<h4>Habitat ID: "+att.habitat_id+"</h4>Historically Occupied: "+att.hist_occup+"<br>Status: "+att.recentstatus);
-        arHabitatIDs.push(att.habitat_id.toString())
-    }
-
     $("#txtFindBUOWL").on('keyup paste', function(){
         var val = $("#txtFindBUOWL").val();
         testLayerAttribute(arHabitatIDs, val, "Habitat ID", "#divFindBUOWL", "#divBUOWLError", "#btnFindBUOWL");
     });
 
     $("#btnFindBUOWL").click(function(){
-        const val = $("#txtFindBUOWL").val();
-        returnLayerByAttribute("dj_buowl",'habitat_id',val,
-            function (lyr) {
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    lyrSearch = L.geoJSON(lyr.toGeoJSON(), {
-                        style: {
-                            color: 'red',
-                            weight: 10,
-                            opacity: 0.5,
-                            fillOpacity: 0
-                        }
-                    }).addTo(mymap);
-                    mymap.fitBounds(lyr.getBounds().pad(1));
-                    const att = lyr.feature.properties;
-                    $("#buowl_habitat").val(att.habitat);
-                    $("#buowl_hist_occup").val(att.hist_occup);
-                    $("#buowl_recentstatus").val(att.recentstatus);
-                    $("#buowl_lastsurvey").val(att.lastsurvey);
-                    $("#BUOWLmetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
-                    // Turning the form on
-                    $("#formBUOWL").show();
-
-                    $.ajax({
-                        url: "djbasin_resources/php_basin_affected_projects.php",
-                        data: {tbl: "dj_buowl", distance: 300, fld: "habitat_id", id: val},
-                        type: "POST",
-                        success: function (response) {
-                            $("#divBUOWLAffected").html(response);
-                        },
-                        error: function (xhr, status, error) {
-                            $("#divBUOWLAffected").html("ERROR: "+error);
-                        }
-                    });
-
-                    $("#divBUOWLError").html("");
-
-                    // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
-                    /* fgpDrawnItems.clearLayers();
-                     fgpDrawnItems.addLayer(lyr);*/
-
-                    // Selecting the survey button
-                    $("#btnBUOWLsurveys").show();
-                } else {
-                    $("#divBUOWLError").html("**** Habitat ID not found ****");
-                }
-            })
+        findBUOWL($("#txtFindBUOWL").val());
     });
 
     $("#lblBUOWL").click(function(){
@@ -875,84 +780,6 @@ if (logged_in()) {
         refreshBUOWL();
     });
 
-    function refreshBUOWL(whr) {
-        // filtering
-        let objData;
-        if (whr) {
-            objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", where: whr};
-        } else {
-            objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup"};
-        }
-        $.ajax({url: "php/load_data.php",
-            data: objData,
-            type: "POST",
-            success: function (response){
-                if (response.substring(0, 5) == "ERROR") {
-                    alert(response);
-                } else {
-                    // Reset the eagle id layer, it has to be empty before we reload the data
-                    arHabitatIDs = [];
-                    jsonBUOWL = JSON.parse(response);
-                    if (lyrBUOWL) {
-                        ctlLayers.removeLayer(lyrBUOWL);
-                        lyrBUOWL.remove();
-                        lyrBUOWLbuffer.remove();
-                    }
-                    lyrBUOWL = L.geoJSON(jsonBUOWL, {
-                        style: styleBUOWL,
-                        onEachFeature: processBUOWL
-                    }).addTo(mymap);
-                    // Layer control
-                    ctlLayers.addOverlay(lyrBUOWL, "Burrowing Owl Habitat")
-                    arHabitatIDs.sort(function (a, b) {
-                        return a - b
-                    });
-                    $("#txtFindBUOWL").autocomplete({
-                        source: arHabitatIDs
-                    });
-                    refreshBUOWLBuffer(whr);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error)
-            }
-        });
-    }
-
-    // getting buffer data
-    function refreshBUOWLBuffer(whr) {
-        let objData;
-        if (whr) {
-            objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", where: whr , distance: 300};// distance is for the buffer
-        } else {
-            objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", distance: 300};
-        }
-        $.ajax({url: "php/load_data.php",
-            data: objData,
-            type: "POST",
-            success: function (response){
-                if (response.substring(0, 5) == "ERROR") {
-                    alert(response);
-                } else {
-                    jsonBUOWLbuffer = JSON.parse(response);
-                    if (lyrBUOWLbuffer) {
-                        lyrBUOWLbuffer.remove();
-                    }
-                    lyrBUOWLbuffer = L.geoJSON(jsonBUOWLbuffer, {
-                        style: {
-                            color: "hotpink",
-                            dashArray: "5,5",
-                            fillOpacity: 0
-                        },
-                    }).addTo(mymap);
-                    lyrBUOWL.bringToFront();
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error)
-            }
-        });
-    }
 
     // ************ Client Linears **********
 
@@ -960,81 +787,13 @@ if (logged_in()) {
         $("#legendLinearProjectDetails").toggle();
     });
 
-    function styleClientLinears(json) {
-        const att = json.properties;
-        switch (att.type) {
-            case 'Pipeline':
-                return {color:'peru'};
-                break;
-            case 'Flowline':
-                return {color:'navy'};
-                break;
-            case 'Flowline, est.':
-                return {color:'navy', dashArray:"5,5"};
-                break;
-            case 'Electric Line':
-                return {color:'darkgreen'};
-                break;
-            case 'Access Road - Confirmed':
-                return {color:'darkred'};
-                break;
-            case 'Access Road - Estimated':
-                return {color:'darkred', dashArray:"5,5"};
-                break;
-            case 'Extraction':
-                return {color:'indigo'};
-                break;
-            default:
-                return {color:'darkgoldenrod'}
-        }
-    }
-
-    function processClientLinears(json, lyr) {
-        let att;
-        att = json.properties;
-        lyr.bindTooltip("<h4>Linear Project: "+att.project+"</h4>Type: "+att.type+"<br>ROW Width: "+att.row_width
-            +"<br>Length: "+returnMultiLength(lyr.getLatLngs()).toFixed(0));
-        arProjectIDs.push(att.project.toString());
-
-    }
-
     $("#txtFindProject").on('keyup paste', function(){
         const val = $("#txtFindProject").val();
         testLayerAttribute(arProjectIDs, val, "PROJECT ID", "#divFindProject", "#divProjectError", "#btnFindProject");
     });
 
     $("#btnFindProject").click(function(){
-        const val = $("#txtFindProject").val();
-        returnLayerByAttribute("dj_linear_projects",'project',val,
-            function (lyr) {
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    lyrSearch = L.geoJSON(lyr.toGeoJSON(), {style:{color:'red', weight:10, opacity:0.5}}).addTo(mymap);
-                    mymap.fitBounds(lyr.getBounds().pad(1));
-                    const att = lyr.feature.properties;
-                    $("#linear_type").val(att.type);
-                    $("#linear_row_width").val(att.row_width);
-                    $("#projectMetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
-                    $("#formProject").show();
-
-                    $.ajax({
-                        url:'dj_basin_affected_constraints.php',
-                        data:{id:val},
-                        type:'POST',
-                        success:function(response){
-                            $("#divProjectAffected").html(response);
-                        },
-                        error:function(xhr, status, error){
-                            $("#divProjectAffected").html("ERROR: "+error);
-                        }
-                    });
-                } else {
-                    $("#divProjectError").html("**** Project ID not found ****");
-                }
-            }
-        );
+        findProject($("#txtFindProject").val());
     });
 
     $("#lblProject").click(function(){
@@ -1048,6 +807,10 @@ if (logged_in()) {
 
     $("#btnProjectFilterNone").click(function () {
         $("input[name=fltProject]").prop("checked", false);
+    });
+
+    $("#btnRefreshLinears").click(function(){
+        refreshLinears();
     });
 
     $("#btnProjectFilter").click(function () {
@@ -1104,97 +867,6 @@ if (logged_in()) {
         refreshLinears();
     });
 
-    function refreshLinears(whr) {
-        let objData;
-        if (whr) {
-            objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", where: whr};
-        } else {
-            objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project"};
-        }
-        $.ajax({url: "php/load_data.php",
-            data: objData,
-            type: "POST",
-            success: function (response){
-                if (response.substring(0, 5) == "ERROR") {
-                    alert(response);
-                } else {
-                    // Reset the eagle id layer, it has to be empty before we reload the data
-                    arProjectIDs = [];
-                    try {
-                        jsonLinears = JSON.parse(response);
-                    } catch (e) {
-                        console.error("Error parsing JSON:", e);
-                        console.error("Response:", response);
-                        return; // Exit the function if JSON parsing fails
-                    }
-
-                    if (lyrClientLines) {
-                        ctlLayers.removeLayer(lyrClientLines);
-                        lyrClientLines.remove();
-                        lyrClientLinesBuffer.remove();
-                    }
-                    lyrClientLinesBuffer = L.featureGroup();
-                    // Here we recreat it using json
-                    lyrClientLines = L.geoJSON(jsonLinears, {
-                        style: styleClientLinears, onEachFeature: processClientLinears
-                    }).addTo(mymap);
-                    // Layer control
-                    ctlLayers.addOverlay(lyrClientLines, "Linear Projects")
-                    arProjectIDs.sort(function (a, b) {
-                        return a - b
-                    });
-                    $("#txtFindProject").autocomplete({
-                        source: arProjectIDs
-                    });
-                    refreshLinearsBuffers(whr);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error)
-            }
-        });
-    }
-
-    function refreshLinearsBuffers(whr) {
-        let objData;
-        if (whr) {
-            objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width", where: whr};
-        } else {
-            objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width"};
-        }
-        $.ajax({url: "php/load_data.php",
-            data: objData,
-            type: "POST",
-            success: function (response){
-                if (response.substring(0, 5) == "ERROR") {
-                    alert(response);
-                } else {
-                    try {
-                        jsonLinearBuffers = JSON.parse(response);
-                    } catch (e) {
-                        console.error("Error parsing JSON:", e);
-                        console.error("Response:", response);
-                        return; // Exit the function if JSON parsing fails
-                    }
-
-                    if (lyrClientLinesBuffer) {
-                        lyrClientLinesBuffer.remove();
-                    }
-                    lyrClientLinesBuffer = L.geoJSON(jsonLinearBuffers, {
-                        style: {
-                            color: "grey",
-                            dashArray: "5,5",
-                            fillOpacity: 0
-                        },
-                    }).addTo(mymap);
-                    lyrClientLines.bringToFront();
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error)
-            }
-        });
-    }
 
     // *********  Eagle Functions *****************
 
@@ -1202,16 +874,6 @@ if (logged_in()) {
         $("#lgndEagleDetail").toggle();
     });
 
-    function returnEagleMarker(json, latlng){
-        const att = json.properties;
-        if (att.status=='ACTIVE NEST') {
-            var clrNest = 'deeppink';
-        } else {
-            var clrNest = 'chartreuse';
-        }
-        arEagleIDs.push(att.nest_id.toString());
-        return L.circle(latlng, {radius:804, color:clrNest,fillColor:'chartreuse', fillOpacity:0.5}).bindTooltip("<h4>Eagle Nest: "+att.nest_id+"</h4>Status: "+att.status);
-    }
 
     $("#txtFindEagle").on('keyup paste', function(){
         const val = $("#txtFindEagle").val();
@@ -1219,47 +881,8 @@ if (logged_in()) {
     });
 
     $("#btnFindEagle").click(function(){
-        const val = $("#txtFindEagle").val();
-        returnLayerByAttribute("dj_eagle",'nest_id',val,
-            function (lyr) {
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    lyrSearch = L.circle(lyr.getLatLng(), {
-                        radius: 800,
-                        color: 'red',
-                        weight: 10,
-                        opacity: 0.5,
-                        fillOpacity: 0
-                    }).addTo(mymap);
-                    mymap.setView(lyr.getLatLng(), 14);
-                    const att = lyr.feature.properties;
-                    $("#eagle_status").val(att.status);
-                    $("#eagle_lastsurvey").val(att.lastsurvey);
-                    $("#eagleMetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
-                    $("#formEagle").show();
+        findEagle($("#txtFindEagle").val());
 
-                    $.ajax({
-                        url: "djbasin_resources/php_basin_affected_projects.php",
-                        data: {tbl: "dj_eagle", distance: 804, fld: "nest_id", id:val},//meters
-                        type: "POST",
-                        success: function (response) {
-                            $("#divEagleAffected").html(response);
-                        },
-                        error: function (xhr, status, error) {
-                            $("#divEagleAffected").html("ERROR: "+error);
-                        }
-                    });
-
-                    $("#divEagleError").html("");
-
-                    // Selecting the survey button
-                    $("#btnEagleSurveys").show();
-                } else {
-                    $("#divEagleError").html("**** Eagle Nest ID not found ****");
-                }
-            })
     });
 
     $("#lblEagle").click(function(){
@@ -1283,79 +906,11 @@ if (logged_in()) {
         refreshEagles();
     });
 
-    // whr parameter means where. The where clause is for filterin sql. From tbl select x where ...
-    function refreshEagles(whr) {
-        /* Radio button */
-        let objData;
-        if (whr) {
-            objData = {tbl: "dj_eagle", flds: "id, status, nest_id", where: whr};
-        } else {
-            // if there is no where clause, returning everything from the database
-            objData = {tbl: "dj_eagle", flds: "id, status, nest_id"};
-        }
-        $.ajax({url: "php/load_data.php",
-            data: objData,
-            type: "POST",
-            success: function (response){
-                // Handling db errors. If we do not get json back
-                if (response.substring(0,5) == "ERROR") {
-                    alert(response);
-                } else {
-                    // Reset the eagle id layer, it has to be empty before we reload the data
-                    arEagleIDs = [];
-                    jsonEagles = JSON.parse(response);
-                    if (lyrEagleNests) {
-                        ctlLayers.removeLayer(lyrEagleNests);
-                        lyrEagleNests.remove();
-                    }
-                    lyrEagleNests = L.geoJSON(jsonEagles, {pointToLayer:returnEagleMarker}).addTo(mymap);
-                    // Layer control
-                    ctlLayers.addOverlay(lyrEagleNests, "Eagle Nests")
-                    arEagleIDs.sort(function(a,b){return a-b});
-                    $("#txtFindEagle").autocomplete({
-                        source:arEagleIDs
-                    });
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error)
-            }
-        });
-    }
-
     //  *********** Raptor Functions
 
     $("#btnRaptor").click(function () {
         $("#lgndRaptorDetail").toggle();
     });
-
-    function returnRaptorMarker(json, latlng){
-        let att = json.properties;
-        arRaptorIDs.push(att.nest_id.toString());
-        switch (att.recentspecies) {
-            case 'Red-tail Hawk':
-                var radRaptor = 533;
-                break;
-            case 'Swainsons Hawk':
-                var radRaptor = 400;
-                break;
-            default:
-                var radRaptor = 804;
-                break;
-        }
-        switch (att.recentstatus) {
-            case 'ACTIVE NEST':
-                var optRaptor = {radius:radRaptor, color:'deeppink', fillColor:"cyan", fillOpacity:0.5};
-                break;
-            case 'INACTIVE NEST':
-                var optRaptor = {radius:radRaptor, color:'cyan', fillColor:'cyan', fillOpacity:0.5};
-                break;
-            case 'FLEDGED NEST':
-                var optRaptor = {radius:radRaptor, color:'deeppink', fillColor:"cyan", fillOpacity:0.5, dashArray:"2,8"};
-                break;
-        }
-        return L.circle(latlng, optRaptor).bindPopup("<h4>Raptor Nest: "+att.nest_id+"</h4>Status: "+att.recentstatus+"<br>Species: "+att.recentspecies+"<br>Last Survey: "+att.lastsurvey);
-    }
 
     $("#txtFindRaptor").on('keyup paste', function(){
         var val = $("#txtFindRaptor").val();
@@ -1363,59 +918,7 @@ if (logged_in()) {
     });
 
     $("#btnFindRaptor").click(function(){
-        let radRaptor;
-        const val = $("#txtFindRaptor").val();
-        returnLayerByAttribute("dj_raptor",'nest_id',val,
-            function (lyr) {
-                if (lyr) {
-                    if (lyrSearch) {
-                        lyrSearch.remove();
-                    }
-                    const att = lyr.feature.properties;
-                    switch (att.recentspecies) {
-                        case 'Red-tail Hawk':
-                            radRaptor = 533;
-                            break;
-                        case 'Swainsons Hawk':
-                            radRaptor = 400;
-                            break;
-                        default:
-                            radRaptor = 804;
-                            break;
-                    }
-                    lyrSearch = L.circle(lyr.getLatLng(), {
-                        radius: radRaptor,
-                        color: 'red',
-                        weight: 10,
-                        opacity: 0.5,
-                        fillOpacity: 0
-                    }).addTo(mymap);
-                    mymap.setView(lyr.getLatLng(), 14);
-                    $("#raptor_recentspecies").val(att.recentspecies);
-                    $("#raptor_recentstatus").val(att.recentstatus);
-                    $("#raptor_lastsurvey").val(att.lastsurvey);
-                    $("#raptorMetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
-                    $("#formRaptor").show();
-                    $("#divRaptorError").html("");
-
-                    $.ajax({
-                        url: "djbasin_resources/php_basin_affected_projects.php",
-                        data: {tbl: "dj_raptor", distance: radRaptor, fld: "nest_id", id:val},//meters
-                        type: "POST",
-                        success: function (response) {
-                            $("#divRaptorAffected").html(response);
-                        },
-                        error: function (xhr, status, error) {
-                            $("#divRaptorAffected").html("ERROR: "+error);
-                        }
-                    });
-
-                    // Selecting the survey button
-                    $("#btnRaptorSurveys").show();
-                } else {
-                    $("#divRaptorError").html("**** Raptor Nest ID not found ****");
-                }
-            })
+        findRaptor($("#txtFindRaptor").val());
     });
 
     $("#lblRaptor").click(function(){
@@ -1437,78 +940,6 @@ if (logged_in()) {
         refreshRaptors();
     });
 
-    function refreshRaptors(whr) {
-        let objData;
-        if (whr) {
-            objData = {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey", where: whr}
-        } else {
-            objData = {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"}
-        }
-        $.ajax({
-            url: "php/load_data.php",
-            data: objData,
-            type: "POST",
-            success: function (response) {
-                if (response.substring(0, 5) == "ERROR") {
-                    alert(response);
-                } else {
-                    // Reset the eagle id layer, it has to be empty before we reload the data
-                    arRaptorIDs = [];
-                    jsonRaptor = JSON.parse(response);
-                    if (lyrMarkerCluster) {
-                        ctlLayers.removeLayer(lyrMarkerCluster);
-                        lyrMarkerCluster.remove();
-                        lyrRaptorNests.remove();
-                    }
-                    lyrRaptorNests = L.geoJSON(jsonRaptor, {
-                        pointToLayer: returnRaptorMarker
-                    });
-
-                    arRaptorIDs.sort(function (a, b) {
-                        return a - b
-                    });
-                    $("#txtFindRaptor").autocomplete({
-                        source: arRaptorIDs
-                    });
-                    lyrMarkerCluster = L.markerClusterGroup();
-                    lyrMarkerCluster.addLayer(lyrRaptorNests);
-                    lyrMarkerCluster.addTo(mymap);
-                    // Layer control
-                    ctlLayers.addOverlay(lyrMarkerCluster, "Raptor Nests")
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: " + error)
-            }
-        });
-    }
-
-    //               /*** GBH Functions ***/
-
-    function refreshGBH() {
-        $.ajax({url: "php/load_data.php",
-            data: {tbl: "dj_gbh", flds: "id, activity"},
-            type: "POST",
-            success: function (response){
-                if (response.substring(0, 5) == "ERROR") {
-                    alert(response);
-                } else {
-                    jsonGBH = JSON.parse(response);
-                    if (lyrGBH) {
-                        ctlLayers.removeLayer(lyrGBH);
-                        lyrGBH.remove();
-                    }
-                    lyrGBH = L.geoJSON(jsonGBH, {style: {color: 'fuchsia'}}).bindTooltip("GBH Nesting Area").addTo(mymap);
-                    // Layer control
-                    ctlLayers.addOverlay(lyrGBH, "Heron Rookeries")
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: " + error)
-            }
-        });
-    }
-
     //  *********  jQuery Event Handlers  ************
 
     $("#btnGBH").click(function () {
@@ -1522,158 +953,6 @@ if (logged_in()) {
     $("#btnZoomToDj").click(function () {
         mymap.setView([40.18, -104.83], 11);
     });
-
-            /*** Survey functions ***/
-    /* Surveys func to be able to do CRUD */
-
-    function displaySurveys(tbl, id) {
-        $.ajax({
-            url: "djbasin_resources/php_load_surveys.php",
-            data: {tbl: tbl, id: id},
-            type: "POST",
-            success: function (response) {
-                $("#formSurvey").hide();
-                $("#tableData").html(response);
-                // Buttons
-                $("#tableData").append("<button id='btnInsertSurvey' class='btn btn-success'>Add new survey</button>");
-                $("#btnInsertSurvey").click(function () {
-                    insertSurvey(tbl, id);
-                })
-                $(".btnEditSurvey").click(function () {
-                                    // Passing the data-id from the php script
-                    editSurvey(tbl, id, $(this).attr("data-id"));
-                })
-                $(".btnDeleteSurvey").click(function () {
-                    deleteSurvey(tbl, id, $(this).attr("data-id"));
-                })
-                $("#dlgModal").show();
-            },
-            error: function (xhr, status, error) {
-                $("#tableData").html("ERROR: "+error);
-                $("#dlgModal").show();
-            }
-        });
-    }
-
-    function insertSurvey(tbl, id) {
-        // This is how we test to see if it works
-        alert(" Inserted "+id+" in table "+tbl);
-        $("#survey_id").val("New");
-        $("#survey_habitat").val(id);
-        $("#survey_surveyor").val(user.firstname+" "+user.lastname);
-        $("#survey_surveydate").val(returnCurrentDate());
-        $("#survey_result").val("ACTIVE NEST");
-        $("#tableData").html("");
-        $("#formSurveyButtons").html("<button id='btnSubmitSurvey' class='btn btn-success col-sm-offset-4'>Submit</button>" +
-            "<button id='btnCancelSurvey' class='btn btn-danger col-sm-offset-1'>Cancel</button>");
-        $("#btnSubmitSurvey").click(function (e) {
-            // this stops from reloading the page
-            e.preventDefault();
-            submitSurvey(tbl, id);
-        });
-        $("#btnCancelSurvey").click(function (e) {
-            // this stops from reloading the page
-            e.preventDefault();
-            displaySurveys(tbl, id);
-        });
-        $("#formSurvey").show();
-    }
-
-    function submitSurvey(tbl, id) {
-        const jsnFormData = returnFormData("inpSurvey");
-        jsnFormData.tbl = tbl;
-        // we want to get rid of the id
-        delete jsnFormData.id;
-        alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
-        $.ajax({
-            url: "php/insert_record.php",
-            data: jsnFormData,
-            type: "POST",
-            success: function (response) {
-                if (response.substring(0,5) == "ERROR") {
-                    alert(response)
-                } else {
-                    displaySurveys(tbl, id);
-                }
-            },
-            error: function (xhr, status, error) {
-                $("#tableData").html("ERROR: "+error);
-                $("#dlgModal").show()
-            }
-        })
-    }
-
-    function editSurvey(tbl, id, survey_id) {
-        alert("Editing"+tbl+" survey "+survey_id+" for constraint "+id);
-        returnRecordByID(tbl, survey_id, function (jsn) {
-            if (jsn) {
-                // Selecting individual elements
-                $("#survey_id").val(jsn.id);
-                $("#survey_habitat").val(jsn.habitat);
-                $("#survey_surveyor").val(jsn.surveyor);
-                $("#survey_surveydate").val(jsn.surveydate);
-                $("#survey_result").val(jsn.result);
-                $("#tableData").html("");
-                $("#formSurveyButtons").html("<button id='btnUpdateSurvey' class='btn btn-warning col-sm-offset-4'>Update</button>" +
-                    "<button id='btnCancelSurvey' class='btn btn-danger col-sm-offset-1'>Cancel</button>");
-                $("#btnUpdateSurvey").click(function (e) {
-                    // this stops from reloading the page
-                    e.preventDefault();
-                    updateSurvey(tbl, id, survey_id);
-                    // the code bellow was not reloading the page after we edited
-                    /*displaySurveys(tbl, id);*/
-                });
-                $("#btnCancelSurvey").click(function (e) {
-                    // this stops from reloading the page
-                    e.preventDefault();
-                    displaySurveys(tbl, id);
-                });
-                $("#formSurvey").show();
-            } else {
-                alert("Could not find record "+survey_id+" in table"+tbl)
-            }
-        });
-    }
-
-    function updateSurvey(tbl, id, survey_id) {
-        const jsnFormData = returnFormData("inpSurvey");
-        jsnFormData.tbl = tbl;
-        alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
-        $.ajax({
-            url: "php/update_record.php",
-            data: jsnFormData,
-            type: "POST",
-            success: function (response) {
-                if (response.substring(0,5) == "ERROR") {
-                    alert(response)
-                } else {
-                    displaySurveys(tbl, id);
-                }
-            },
-            error: function (xhr, status, error) {
-                $("#tableData").html("ERROR: "+error);
-                $("#dlgModal").show()
-            }
-        })
-    }
-
-    function deleteSurvey(tbl, id, survey_id) {
-        if (confirm("Are you sure you want to delete survey "+survey_id+" from "+tbl+"?")) {
-            // deleting surveys from the db
-            $.ajax({
-                url: "php/delete_record.php",
-                data: {tbl: tbl, id: survey_id},
-                type: "POST",
-                success: function (response) {
-                    displaySurveys(tbl, id);
-                },
-                error: function (xhr, status, error) {
-                    $("#tableData").html("ERROR: "+error);
-                    $("#dlgModal").show()
-                }
-            })
-        }
-    }
 
     function changeOptions(tbl) {
         $.ajax({
@@ -1737,259 +1016,6 @@ if (logged_in()) {
             $("#btnTransparent").html("Fill Polygons")
         }
     })
-
-    //  ***********  General Functions *********
-
-    function LatLngToArrayString(ll) {
-        return "["+ll.lat.toFixed(5)+", "+ll.lng.toFixed(5)+"]";
-    }
-
-    // Async function
-    function returnLayerByAttribute(tbl,fld,val, callback) {
-        let arLyrs;
-        // server side from the database
-        let whr = fld+"='"+val+"'";
-        $.ajax({
-            url: "php/load_data.php",
-            data: {tbl: tbl, where: whr},
-            type: "POST",
-            success: function (response) {
-                if (response.substring(0,5)=="ERROR") {
-                    alert(response);
-                    callback(false);
-                } else {
-                    const jsn = JSON.parse(response);
-                    const lyr = L.geoJSON(jsn);
-                    arLyrs = lyr.getLayers();
-                    if (arLyrs.length > 0) {
-                        callback(arLyrs[0]);
-                    } else {
-                        callback(false);
-                    }
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error);
-                callback(false);
-            }
-        });
-    }
-
-    function returnLayersByAttribute(lyr,att,val) {
-        const arLayers = lyr.getLayers();
-        let arMatches = [];
-        for (i=0;i<arLayers.length-1;i++) {
-            const ftrVal = arLayers[i].feature.properties[att];
-            if (ftrVal==val) {
-                arMatches.push(arLayers[i]);
-            }
-        }
-        if (arMatches.length) {
-            return arMatches;
-        } else {
-            return false;
-        }
-    }
-
-    function testLayerAttribute(ar, val, att, fg, err, btn) {
-        if (ar.indexOf(val)<0) {
-            $(fg).addClass("has-error");
-            $(err).html("**** "+att+" NOT FOUND ****");
-            $(btn).attr("disabled", true);
-        } else {
-            $(fg).removeClass("has-error");
-            $(err).html("");
-            $(btn).attr("disabled", false);
-        }
-    }
-
-    function returnRecordByID(tbl, id, callback) {
-        // server side from the database
-        const whr = "id='"+id+"'";
-        $.ajax({
-            url: "php/load_data.php",
-            data: {tbl: tbl, where: whr, spatial: "NO"},
-            type: "POST",
-            success: function (response) {
-                if (response.substring(0,5)=="ERROR") {
-                    alert(response);
-                    callback(false);
-                } else {
-                    // jsn is an array
-                    const jsn = JSON.parse(response);
-                    if (jsn.length > 0) {
-                        callback(jsn[0].properties);
-                    } else {
-                        callback(false);
-                    }
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error);
-                callback(false);
-            }
-        });
-    }
-
-    // Function for the length of the line, in order to edit polygons
-    function returnLength(arLL) {
-        let total = 0;
-        for (let i = 1; i < arLL.length; i++) {
-            // i -1 is 0, this will give us the distance between the first and the 2nd lat long, and so on
-            total += arLL[i-1].distanceTo(arLL[i]);
-        }
-        // after it's finished running the lat longs in the array, we will have the sum of all the intervals and that's going to be our total length
-        return total;
-    }
-    // This will take an array of arrays [[],[]]
-    function returnMultiLength(arArLL) {
-        let total = 0;
-        for (let i = 0; i < arArLL.length; i++) {
-            total += returnLength(arArLL[i]);
-        }
-        return total;
-    }
-    // Calculate the closest layer
-    function returnClosestLayer(lyrGroup, llRef) {
-        const arLyrs = lyrGroup.getLayers();
-        const nearest = L.GeometryUtil.closestLayer(mymap, arLyrs, llRef);
-        nearest.distance = llRef.distanceTo(nearest.latlng);
-        nearest.bearing = L.GeometryUtil.bearing(llRef, nearest.latlng);
-        if (nearest.bearing < 0) {
-            nearest.bearing = nearest.bearing + 360;
-        }
-        nearest.att = nearest.layer.feature.properties;
-        return nearest;
-    }
-
-    // Summarize points
-    function summarizePointsByLine(line, radius, fcPoints, prop) {
-        let buf;
-        buf = turf.buffer(line, radius, "kilometers");
-        buf = turf.featureCollection([buf]);
-        buf = turf.collect(buf, fcPoints, prop, prop+"Vals");
-        return buf;
-    }
-
-    // Polygone intersection
-    function intersectPolyByPolyFC(poly, fcPoly) {
-        let fgp = [];
-        const bbPoly = turf.bboxPolygon(turf.bbox(poly));
-        for (let i = 0; i < fcPoly.features.length; i ++) {
-            const bb = turf.bboxPolygon(turf.bbox(fcPoly.features[i]));
-            if (turf.intersect(bbPoly, bb)) {
-                const int = turf.intersect(poly, fcPoly.features[i]);
-                if (int) {
-                    int.properties = fcPoly.features[i].properties;
-                    fgp.push(int);
-                }
-            }
-        }
-        return turf.featureCollection(fgp);
-    }
-
-    // Intersecting Polygons with lines
-    function intersectLineByPolyFC(line, fcPoly) {
-        let fgp = [];
-        const bbLine = turf.bboxPolygon(turf.bbox(line));
-        for (let i = 0; i <fcPoly.features.length; i++) {
-            const bb = turf.bboxPolygon(turf.bbox(fcPoly.features[i]));
-            if (turf.intersect(bbLine, bb)) {
-                const slice = turf.lineSplit(line, fcPoly.features[i]);
-                for (let j = 0; j < slice.features.length; j ++) {
-                    const curSlice = slice.features[j];
-                    const length = turf.lineDistance(curSlice, "kilometers");
-                    const pdMiddle = turf.along(curSlice, length/2, "kilometers" );
-                    if (turf.inside(pdMiddle, fcPoly.features[i])) {
-                        curSlice.properties = fcPoly.features[i].properties;
-                        fgp.push(curSlice);
-                    }
-                }
-            }
-        }
-        return turf.featureCollection(fgp)
-    }
-    function summarizeLineFC(fcLine, att) {
-        let arUnique = [];
-        let arCount = [];
-        let arLength = [];
-        for (let i = 0; i < fcLine.features.length; i++) {
-            const curAtt = fcLine.features[i].properties[att];
-            const idx = arUnique.indexOf(curAtt);
-            if (idx < 0) {
-                arUnique.push(curAtt);
-                arCount.push(1);
-                arLength.push(turf.lineDistance(fcLine.features[i]));
-            } else {
-                arCount[idx] = arCount[idx] + 1;
-                arLength[idx] = arLength[idx] + turf.lineDistance(fcLine.features[i])
-            }
-        }
-        return [arUnique, arCount, arLength];
-    }
-
-    function summarizeArray(ar) {
-        let arUnique = [];
-        let arCount = [];
-        for (let i = 0; i < ar.length; i++) {
-            const idx = arUnique.indexOf(ar[i]);
-            if (idx < 0) {
-                arUnique.push(ar[i]);
-                arCount.push(1);
-            } else {
-                arCount[idx] = arCount[idx] + 1;
-            }
-        }
-        return [arUnique, arCount];
-    }
-
-    function summarizePolyFC(fcPoly, att) {
-        let arUnique = [];
-        let arCount = [];
-        let arAreas = [];
-        for (let i = 0; i < fcPoly.features.length; i++) {
-            const curAtt = fcPoly.features[i].properties[att];
-            const idx = arUnique.indexOf(curAtt);
-            if (idx < 0) {
-                arUnique.push(curAtt);
-                arCount.push(1);
-                arAreas.push(turf.area(fcPoly.features[i]));
-            } else {
-                arCount[idx] = arCount[idx] + turf.area(fcPoly.features[i]);
-            }
-        }
-        return [arUnique, arCount, arAreas];
-    }
-
-    function stripSpaces(str) {
-        return str.replace(/\s+/g,'');
-    }
-
-    // Returning the current date
-    function returnCurrentDate() {
-        const currentDate = new Date();
-
-        let currentDay = currentDate.getDate();
-        // less than 10 means only two digits.
-        if (currentDay < 10 ){currentDay = "0"+currentDay}
-
-        let currentMonth = currentDate.getMonth() + 1; // Add 1 to the month value bc it starts from 0;
-        if (currentMonth < 10 ){currentMonth = "0"+currentMonth}
-
-        let currentYear = currentDate.getFullYear(); // Here we need the full 4 digits of the year
-
-        return currentYear+"-"+currentMonth+"-"+currentDay;
-    }
-
-    // Updating the db
-    function returnFormData(inpClass) {
-        let objFormData = {};
-        $("."+inpClass).each(function () {
-            objFormData[this.name] = this.value;
-        });
-        return objFormData;
-    }
-
 </script>
 </body>
 </html>
