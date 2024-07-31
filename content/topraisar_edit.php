@@ -482,7 +482,7 @@ if (logged_in()) {
     /* Global variables */
     let user;
     $.ajax({
-        url: "return_user.php",
+        url: "php/return_user.php",
         success: function (response) {
             if (response.substring(0,5) == "ERROR") {
                 alert(response);
@@ -585,7 +585,7 @@ if (logged_in()) {
             const jsn = e.layer.toGeoJSON().geometry;
             console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
             $.ajax({
-                url: "dj_basin_affected_constraints.php",
+                url: "djbasin_resources/php_affected_constraints.php",
                 data: {id: 'geojson', geojson: JSON.stringify(jsn)},
                 type: "POST",
                 success: function (response) {
@@ -830,7 +830,7 @@ if (logged_in()) {
                     $("#formBUOWL").show();
 
                     $.ajax({
-                        url: "dj_basin_affected_projects.php",
+                        url: "djbasin_resources/php_basin_affected_projects.php",
                         data: {tbl: "dj_buowl", distance: 300, fld: "habitat_id", id: val},
                         type: "POST",
                         success: function (response) {
@@ -883,7 +883,7 @@ if (logged_in()) {
         } else {
             objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup"};
         }
-        $.ajax({url: "load_data.php",
+        $.ajax({url: "php/load_data.php",
             data: objData,
             type: "POST",
             success: function (response){
@@ -927,7 +927,7 @@ if (logged_in()) {
         } else {
             objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", distance: 300};
         }
-        $.ajax({url: "load_data.php",
+        $.ajax({url: "php/load_data.php",
             data: objData,
             type: "POST",
             success: function (response){
@@ -1111,7 +1111,7 @@ if (logged_in()) {
         } else {
             objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project"};
         }
-        $.ajax({url: "load_data.php",
+        $.ajax({url: "php/load_data.php",
             data: objData,
             type: "POST",
             success: function (response){
@@ -1162,7 +1162,7 @@ if (logged_in()) {
         } else {
             objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width"};
         }
-        $.ajax({url: "load_data.php",
+        $.ajax({url: "php/load_data.php",
             data: objData,
             type: "POST",
             success: function (response){
@@ -1241,7 +1241,7 @@ if (logged_in()) {
                     $("#formEagle").show();
 
                     $.ajax({
-                        url: "dj_basin_affected_projects.php",
+                        url: "djbasin_resources/php_basin_affected_projects.php",
                         data: {tbl: "dj_eagle", distance: 804, fld: "nest_id", id:val},//meters
                         type: "POST",
                         success: function (response) {
@@ -1293,7 +1293,7 @@ if (logged_in()) {
             // if there is no where clause, returning everything from the database
             objData = {tbl: "dj_eagle", flds: "id, status, nest_id"};
         }
-        $.ajax({url: "load_data.php",
+        $.ajax({url: "php/load_data.php",
             data: objData,
             type: "POST",
             success: function (response){
@@ -1399,7 +1399,7 @@ if (logged_in()) {
                     $("#divRaptorError").html("");
 
                     $.ajax({
-                        url: "dj_basin_affected_projects.php",
+                        url: "djbasin_resources/php_basin_affected_projects.php",
                         data: {tbl: "dj_raptor", distance: radRaptor, fld: "nest_id", id:val},//meters
                         type: "POST",
                         success: function (response) {
@@ -1445,7 +1445,7 @@ if (logged_in()) {
             objData = {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"}
         }
         $.ajax({
-            url: "load_data.php",
+            url: "php/load_data.php",
             data: objData,
             type: "POST",
             success: function (response) {
@@ -1486,7 +1486,7 @@ if (logged_in()) {
     //               /*** GBH Functions ***/
 
     function refreshGBH() {
-        $.ajax({url: "load_data.php",
+        $.ajax({url: "php/load_data.php",
             data: {tbl: "dj_gbh", flds: "id, activity"},
             type: "POST",
             success: function (response){
@@ -1528,7 +1528,7 @@ if (logged_in()) {
 
     function displaySurveys(tbl, id) {
         $.ajax({
-            url: "load_surveys.php",
+            url: "djbasin_resources/php_load_surveys.php",
             data: {tbl: tbl, id: id},
             type: "POST",
             success: function (response) {
@@ -1586,7 +1586,7 @@ if (logged_in()) {
         delete jsnFormData.id;
         alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
         $.ajax({
-            url: "insert_record.php",
+            url: "php/insert_record.php",
             data: jsnFormData,
             type: "POST",
             success: function (response) {
@@ -1640,7 +1640,7 @@ if (logged_in()) {
         jsnFormData.tbl = tbl;
         alert("Updating "+survey_id+" in "+tbl+"\n\n"+JSON.stringify(jsnFormData))
         $.ajax({
-            url: "update_record.php",
+            url: "php/update_record.php",
             data: jsnFormData,
             type: "POST",
             success: function (response) {
@@ -1661,7 +1661,7 @@ if (logged_in()) {
         if (confirm("Are you sure you want to delete survey "+survey_id+" from "+tbl+"?")) {
             // deleting surveys from the db
             $.ajax({
-                url: "delete_record.php",
+                url: "php/delete_record.php",
                 data: {tbl: tbl, id: survey_id},
                 type: "POST",
                 success: function (response) {
@@ -1673,6 +1673,26 @@ if (logged_in()) {
                 }
             })
         }
+    }
+
+    function changeOptions(tbl) {
+        $.ajax({
+            url: "php/distinct_options.php",
+            data: {tbl: tbl, fld: "result"},
+            type: "POST",
+            success: function (response) {
+                // if the 1st 5 letters are equal to error that will indicate that we handled and error on the db side
+                if (response.substring(0,5) == "ERROR") {
+                    alert(response);
+                } else {
+                    $("#survey_result").html(response);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert("ERROR: "+error);
+                $("#dlgModal").show()
+            }
+        })
     }
 
     $("#btnRaptorSurveys").click(function () {
@@ -1730,7 +1750,7 @@ if (logged_in()) {
         // server side from the database
         let whr = fld+"='"+val+"'";
         $.ajax({
-            url: "load_data.php",
+            url: "php/load_data.php",
             data: {tbl: tbl, where: whr},
             type: "POST",
             success: function (response) {
@@ -1787,7 +1807,7 @@ if (logged_in()) {
         // server side from the database
         const whr = "id='"+id+"'";
         $.ajax({
-            url: "load_data.php",
+            url: "php/load_data.php",
             data: {tbl: tbl, where: whr, spatial: "NO"},
             type: "POST",
             success: function (response) {
@@ -1958,7 +1978,7 @@ if (logged_in()) {
 
         let currentYear = currentDate.getFullYear(); // Here we need the full 4 digits of the year
 
-        return currentDay+"-"+currentMonth+"-"+currentYear;
+        return currentYear+"-"+currentMonth+"-"+currentDay;
     }
 
     // Updating the db

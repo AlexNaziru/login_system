@@ -1,42 +1,38 @@
 <?php
+include "../../includes/init.php";
 if (isset($_POST["tbl"])) {
     $table = $_POST["tbl"];
-    if (isset($_POST["flds"])) {
-        $fields = $_POST["flds"];
+    if (isset($_POST["fld"])) {
+        $fields = $_POST["fld"];
     } else {
-        $fields = "*";
+        $fields = "nest_id";
     }
-    if (isset($_POST["where"])) {
-        $where = " WHERE ".$_POST["where"];
+    if (isset($_POST["distance"])) {
+        $distance = $_POST["distance"];
     } else {
-        $where = "";
+        $distance = 300; // by default
     }
-    if (isset($_POST["order"])) {
-        $order = " ORDER BY ".$_POST["order"];
+    if (isset($_POST["id"])) {
+        $id = $_POST["id"];
     } else {
-        $order = "";
+        $id = 1;
     }
-    // PDO for PostgreSQL connection
-    $dsn = "pgsql:host=localhost;dbname=login;port=5432";
-    $opt = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, # This won't give an error and it won't give away how our db is structured
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false
-    ];
-    $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
 
 // Loading the postGIS eagle data
     // Error handling
     try {
-        $result = $pdo->query("SELECT {$fields} FROM {$table}{$where}{$order};");
-        // Putting a title on the table modal
-        if (isset($_POST["title"])) {
-            $returnTable = "<h2 class='text-center'>{$_POST["title"]}</h2>";
-        } else {
-            $returnTable = "";
-        }
+        // Quering spacial data and non-special data by combining queries
+        $strQuery = 'SELECT round(st_distance(b.geom::geography, l.geom::geography)) as "Distance", l.project as "Project ID",
+        l.type as "Type", round(st_length(l.geom::geography)) as "Length (m)"
+        FROM '.$table.' b
+        JOIN dj_linear_projects l
+        ON st_dwithin(b.geom::geography, l.geom::geography, '.$distance.')
+        WHERE '.$fields.' = '.$id.'
+        ORDER BY "Distance"';
+        $result = $pdo->query($strQuery);
+
         // Don't forget to append because the table class it's not the first thing added (.)
-        $returnTable.= "<table class='table table-hover'>";
+        $returnTable = "<table class='table table-hover'>";
         $row = $result->fetch();
         // Want only the 1st row for the key or headers
         if ($row) {
@@ -69,4 +65,3 @@ if (isset($_POST["tbl"])) {
 } else {
     echo "Error: No table parameter";
 }
-

@@ -1,4 +1,5 @@
 <?php
+    include "../../includes/init.php";
     if (isset($_POST["id"])) {
         $id = $_POST["id"];
     } else {
@@ -8,14 +9,7 @@
     if ($id == "geojson") {
         $geojson = $_POST["geojson"];
     }
-    // PDO for PostgreSQL connection
-    $dsn = "pgsql:host=localhost;dbname=login;port=5432";
-    $opt = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, # This won't give an error and it won't give away how our db is structured
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false
-    ];
-    $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
+
 
 // Loading the postGIS eagle data
     // Error handling

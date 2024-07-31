@@ -1,16 +1,9 @@
 <?php
+include "../../includes/init.php";
 if (isset($_POST['tbl'])) {
     $table = $_POST['tbl'];
     if (isset($_POST['id'])) {
         $id = $_POST['id'];
-        $dsn = "pgsql:host=localhost;dbname=login;port=5432";
-        $opt = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false
-        ];
-        $pdo = new PDO($dsn, 'postgres', 'alexandru', $opt);
-
         try {
             $result = $pdo->query('SELECT id, surveyor, surveydate, result FROM '.$table.' WHERE habitat='.$id.' ORDER BY surveydate DESC, id DESC');
             $returnTable="<h2 class='text-center'>Survey Results of ID {$id}</h2>";

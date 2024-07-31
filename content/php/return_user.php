@@ -1,5 +1,5 @@
 <?php
-include "../includes/init.php";
+include "../../includes/init.php"; // Going back 2 directories
 
 if (logged_in()) {
     $username = $_SESSION["username"];
