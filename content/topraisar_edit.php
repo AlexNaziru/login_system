@@ -266,25 +266,25 @@ if (logged_in()) {
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="hist_occup">Historically Occupied: </label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="hist_occup" id="buowl_hist_occup" placeholder="Historically Occupied" readonly>
+                                <select class="form-control" name="hist_occup" id="buowl_hist_occup" disabled></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="habitat">Habitat:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="habitat" id="buowl_habitat" placeholder="Habitat" readonly>
+                                <select class="form-control" name="habitat" id="buowl_habitat" disabled></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="recentstatus">Recent Status:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="recentstatus" id="buowl_recentstatus" placeholder="Recent Status" readonly>
+                                <select class="form-control" name="recentstatus" id="buowl_recentstatus" disabled></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" readonly>
+                                <input type="date" class="form-control" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" disabled>
                             </div>
                         </div>
                         <div id="BUOWLmetadata"></div>
@@ -743,6 +743,9 @@ if (logged_in()) {
             alert("Location was not found");
         })
 
+        changeOptions("buowl_habitat", "dj_buowl", "habitat");
+        changeOptions("buowl_hist_occup", "dj_buowl", "hist_occup");
+        changeOptions("buowl_recentstatus", "dj_buowl", "recentstatus");
     });
 
     //  ********* BUOWL Functions
@@ -954,42 +957,22 @@ if (logged_in()) {
         mymap.setView([40.18, -104.83], 11);
     });
 
-    function changeOptions(tbl) {
-        $.ajax({
-            url: "php/distinct_options.php",
-            data: {tbl: tbl, fld: "result"},
-            type: "POST",
-            success: function (response) {
-                // if the 1st 5 letters are equal to error that will indicate that we handled and error on the db side
-                if (response.substring(0,5) == "ERROR") {
-                    alert(response);
-                } else {
-                    $("#survey_result").html(response);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert("ERROR: "+error);
-                $("#dlgModal").show()
-            }
-        })
-    }
-
     $("#btnRaptorSurveys").click(function () {
-        changeOptions("dj_raptor_survey");
+        changeOptions("survey_result", "dj_raptor_survey", "result");
         displaySurveys("dj_raptor_survey", $("#txtFindRaptor").val());
     });
 
     /* Eagle Surveys */
 
     $("#btnEagleSurveys").click(function () {
-        changeOptions("dj_eagle_surveys");
+        changeOptions("survey_result", "dj_eagle_surveys", "result");
         displaySurveys("dj_eagle_surveys", $("#txtFindEagle").val());
     });
 
     /* BUOWL Surveys */
 
     $("#btnBUOWLsurveys").click(function () {
-        changeOptions("dj_buowl_survey");
+        changeOptions("survey_result", "dj_buowl_survey", "result");
         displaySurveys("dj_buowl_survey", $("#txtFindBUOWL").val());
     });
 

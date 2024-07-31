@@ -249,3 +249,24 @@ function returnFormData(inpClass) {
     });
     return objFormData;
 }
+
+// Options func for specific types of surveys
+function changeOptions(element, tbl, fld) {
+    $.ajax({
+        url: "php/distinct_options.php",
+        data: {tbl: tbl, fld: fld},
+        type: "POST",
+        success: function (response) {
+            // if the 1st 5 letters are equal to error that will indicate that we handled and error on the db side
+            if (response.substring(0,5) == "ERROR") {
+                alert(response);
+            } else {
+                $("#"+element).html(response);
+            }
+        },
+        error: function (xhr, status, error) {
+            alert("ERROR: "+error);
+            $("#dlgModal").show()
+        }
+    })
+}
