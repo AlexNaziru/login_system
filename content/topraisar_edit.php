@@ -263,31 +263,41 @@ if (logged_in()) {
                 </div>
                 <div class="" id="divBUOWLData">
                     <form class="form-horizontal" id="formBUOWL">
+                        <div class="form-group featureID">
+                            <label class="control-label col-sm-3" for="id">ID:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control inpBUOWL" name="id" id="buowl_id" placeholder="ID" disabled>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="hist_occup">Historically Occupied: </label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="hist_occup" id="buowl_hist_occup" disabled></select>
+                                <select class="form-control inpBUOWL" name="hist_occup" id="buowl_hist_occup" disabled></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="habitat">Habitat:</label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="habitat" id="buowl_habitat" disabled></select>
+                                <select class="form-control inpBUOWL" name="habitat" id="buowl_habitat" disabled></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="recentstatus">Recent Status:</label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="recentstatus" id="buowl_recentstatus" disabled></select>
+                                <select class="form-control inpBUOWL" name="recentstatus" id="buowl_recentstatus" disabled></select>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
                             <div class="col-sm-9">
-                                <input type="date" class="form-control" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" disabled>
+                                <input type="date" class="form-control inpBUOWL" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" disabled>
                             </div>
                         </div>
-                        <div id="BUOWLmetadata"></div>
+                        <div id="BUOWLmetadata" class="col-xs-9"></div>
+                        <div class="col-xs-3">
+                            <span id="btnEditBUOWL"><i class="fa fa-pencil fa-2x"></i></span>
+                            <span id="btnDeleteBUOWL"><i class="fa fa-trash fa-2x pull-right"></i></span>
+                        </div>
                     </form>
                 </div>
                 <div class="" id="divBUOWLAffected"></div>
@@ -783,6 +793,28 @@ if (logged_in()) {
         refreshBUOWL();
     });
 
+                /*** BUOWL EDITING/DELETING EVENT HANDLERS ***/
+
+    $("#btnEditBUOWL").click(function () {
+        $(".inpBUOWL").attr("disabled", false);
+        // disabling the id field
+        $("#buowl_id").attr("disabled", true);
+        alert("Editing BUOWL?")
+    })
+
+    $("#btnDeleteBUOWL").click(function () {
+        const id = $("#buowl_id").val();
+        if (confirm("Are you sure you want to delete this BUOWL "+id+"?")) {
+            deleteRecord("dj_buowl", id); // this was a string and it deleted all
+            $("#divBUOWLData").hide();
+            // erasing the information in the html once delete from the db
+            $("#divBUOWLAffected").html("");
+            $("#txtFindBUOWL").val("");
+            $("#btnBUOWLsurveys").hide();
+            // closing the data section
+            lyrSearch.remove();
+        }
+    })
 
     // ************ Client Linears **********
 

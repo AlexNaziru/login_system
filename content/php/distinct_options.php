@@ -6,7 +6,7 @@ if (isset($_POST['tbl'])) {
         $fld = $_POST['fld'];
 
         try {
-            $result = $pdo->query("SELECT DISTINCT {$fld} FROM {$table}");
+            $result = $pdo->query("SELECT DISTINCT {$fld} FROM {$table} ORDER BY {$fld}");
 
             $returnOptions = "";
             foreach($result AS $row) {

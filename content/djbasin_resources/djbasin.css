@@ -31,3 +31,11 @@
 .btnSurveys {
     display: none;
 }
+
+#btnEditBUOWL {
+    color: #007fff;
+}
+
+#btnDeleteBUOWL {
+    color: #c12e2a;
+}

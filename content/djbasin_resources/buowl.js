@@ -112,6 +112,7 @@ function findBUOWL(val) {
                 }).addTo(mymap);
                 mymap.fitBounds(lyr.getBounds().pad(1));
                 const att = lyr.feature.properties;
+                $("#buowl_id").val(att.id);
                 $("#buowl_habitat").val(att.habitat);
                 $("#buowl_hist_occup").val(att.hist_occup);
                 $("#buowl_recentstatus").val(att.recentstatus);
@@ -144,4 +145,28 @@ function findBUOWL(val) {
                 $("#divBUOWLError").html("**** Habitat ID not found ****");
             }
         })
+}
+
+function deleteRecord(tbl, id) {
+    $.ajax({
+        url:"php/delete_record.php",
+        data: {tbl:tbl, id:id},
+        type: "POST",
+        success: function (response) {
+            if (response.substring(0,5) == "ERROR") {
+                alert(response);
+            } else {
+                alert("Record "+id+ " deleted from "+tbl+ "\n\n"+response);
+                // Controlling witch data is refreshed
+                switch (tbl) {
+                    case "dj_buowl":
+                    refreshBUOWL();
+                    break;
+                }
+            }
+        },
+        error: function (xhr, status, error) {
+            alert("AJAX ERROR: "+error);
+        }
+    })
 }
