@@ -300,6 +300,7 @@ if (logged_in()) {
                         </div>
                     </form>
                 </div>
+                <button id="btnBUOWLUpdate" class="btnSurveys btn btn-warning btn-block">Update BUOWL</button>
                 <div class="" id="divBUOWLAffected"></div>
                 <button id="btnBUOWLsurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
@@ -799,14 +800,23 @@ if (logged_in()) {
         $(".inpBUOWL").attr("disabled", false);
         // disabling the id field
         $("#buowl_id").attr("disabled", true);
-        alert("Editing BUOWL?")
+        // Submit button will pop out when we click the edit button
+        $("#btnBUOWLUpdate").show();
+    })
+
+    // Submitting edit
+    $("#btnBUOWLUpdate").click(function () {
+        const jsn = returnFormData("inpBUOWL");
+        // This is a table property that it will be sent to an php script
+        jsn.tbl = "dj_buowl";
+        updateRecord(jsn);
     })
 
     $("#btnDeleteBUOWL").click(function () {
         const id = $("#buowl_id").val();
         if (confirm("Are you sure you want to delete this BUOWL "+id+"?")) {
             deleteRecord("dj_buowl", id); // this was a string and it deleted all
-            $("#divBUOWLData").hide();
+            $("#formBUOWL").hide();
             // erasing the information in the html once delete from the db
             $("#divBUOWLAffected").html("");
             $("#txtFindBUOWL").val("");

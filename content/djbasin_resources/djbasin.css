@@ -28,7 +28,7 @@
     background-color:darksalmon;
 }
 
-.btnSurveys {
+.btnSurveys, #btnBUOWLUpdate {
     display: none;
 }
 

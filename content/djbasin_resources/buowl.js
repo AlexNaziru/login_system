@@ -118,6 +118,7 @@ function findBUOWL(val) {
                 $("#buowl_recentstatus").val(att.recentstatus);
                 $("#buowl_lastsurvey").val(att.lastsurvey);
                 $("#BUOWLmetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
+                $(".inpBUOWL").attr("disabled", true);
                 // Turning the form on
                 $("#formBUOWL").show();
 
@@ -162,6 +163,32 @@ function deleteRecord(tbl, id) {
                     case "dj_buowl":
                     refreshBUOWL();
                     break;
+                }
+            }
+        },
+        error: function (xhr, status, error) {
+            alert("AJAX ERROR: "+error);
+        }
+    })
+}
+
+function updateRecord(jsn) {
+    $.ajax({
+        url: "php/update_record.php",
+        data: jsn,
+        type: "POST",
+        success: function (response) {
+            if (response.substring(0,5) == "ERROR") {
+                alert(response);
+            } else {
+                alert("Record "+jsn.id+ " in "+jsn.tbl+ "updated\n\n"+response);
+                // Controlling witch data is refreshed
+                switch (jsn.tbl) {
+                    case "dj_buowl":
+                        refreshBUOWL();
+                        // getting the habitat_id from the text box
+                        findBUOWL($("#txtFindBUOWL").val());
+                        break;
                 }
             }
         },
