@@ -270,3 +270,12 @@ function changeOptions(element, tbl, fld) {
         }
     })
 }
+
+// Creating new geometries
+function isShowing(element) {
+    if ($("#"+element).css("display") == "none") {
+        return false;
+    } else {
+        return true;
+    }
+}

@@ -28,11 +28,11 @@
     background-color:darksalmon;
 }
 
-.btnSurveys, #btnBUOWLUpdate {
+.btnSurveys, #btnBUOWLUpdate, .featureID, #BUOWLGeojson {
     display: none;
 }
 
-#btnEditBUOWL, #btnEditBUOWLgeometry {
+#btnEditBUOWL, #btnEditBUOWLgeometry, #btnToggleBUOWLgeometry {
     color: #007fff;
 }
 

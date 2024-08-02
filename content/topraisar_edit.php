@@ -238,7 +238,8 @@ if (logged_in()) {
         </div>
 
         <div class="leaflet-sidebar-pane" id="buowl">
-            <h1 class="leaflet-sidebar-header">Burrowing Owl Habitat <button id="btnRefreshBUOWL"class="btn btn-primary"><i class="fa fa-refresh"></i></button>
+            <h1 class="leaflet-sidebar-header">Burrowing Owl Habitat <button id="btnRefreshBUOWL" class="btn btn-primary"><i class="fa fa-refresh"></i></button>
+                <button id="btnAddBUOWL" class="btn btn-success"><i class="fa fa-plus"></i></button>
                 <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div></h1>
             <div id="divBUOWL" class="col-xs-12">
                 <div id="divBUOWLError" class="errorMsg col-xs-12"></div>
@@ -289,8 +290,11 @@ if (logged_in()) {
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
-                            <div class="col-sm-9">
+                            <div class="col-sm-7">
                                 <input type="date" class="form-control inpBUOWL" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" disabled>
+                            </div>
+                            <div class="col-sm-2">
+                                <span id="btnToggleBUOWLgeometry"><i class="fa fa-globe fa-2x"></i></span>
                             </div>
                         </div>
                         <div id="BUOWLGeojson" class="form-group">
@@ -311,6 +315,7 @@ if (logged_in()) {
                     </form>
                 </div>
                 <button id="btnBUOWLUpdate" class="btnSurveys btn btn-warning btn-block">Update BUOWL</button>
+                <button id="btnBUOWLInsert" class="btnSurveys btn btn-success btn-block">Insert BUOWL</button>
                 <div class="" id="divBUOWLAffected"></div>
                 <button id="btnBUOWLsurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
@@ -574,23 +579,35 @@ if (logged_in()) {
 
         // listen to when a new layer is created
         mymap.on('pm:create', function(e) {
-            const jsn = e.layer.toGeoJSON().geometry;
-            console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
-            $.ajax({
-                url: "djbasin_resources/php_affected_constraints.php",
-                data: {id: 'geojson', geojson: JSON.stringify(jsn)},
-                type: "POST",
-                success: function (response) {
-                    $("#tableData").html(response);
-                    $("#dlgModal").show();
-                },
-                error: function (xhr, status, error) {
-                    $("#tableData").html("ERROR: "+error);
-                    $("#dlgModal").show();
+            let jsn = e.layer.toGeoJSON().geometry;
+            console.log("Layer created event triggered"); // Log the event trigger
+            console.log("Shape created:", e.shape);
+
+            if (isShowing("btnBUOWLInsert") && e.shape == "Polygon") {
+                console.log("Checking condition for btnBUOWLInsert and Poly shape"); // Log condition check
+                if (confirm("Are you sure you want to add geometry?")) {
+                    // converting to a multipolygon as an array
+                    jsn = {type: "MultiPolygon", coordinates: [jsn.coordinates]}
+                    // adding the json into the text box
+                    $("#buowl_geojson").val(JSON.stringify(jsn));
+                    console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
                 }
-            })
-            //e.shape; // the name of the shape being drawn (i.e. 'Circle')
-            //e.layer; // the leaflet layer created
+            } else {
+                jsn = e.layer.toGeoJSON().geometry;
+                $.ajax({
+                    url: "djbasin_resources/php_affected_constraints.php",
+                    data: {id: 'geojson', geojson: JSON.stringify(jsn)},
+                    type: "POST",
+                    success: function (response) {
+                        $("#tableData").html(response);
+                        $("#dlgModal").show();
+                    },
+                    error: function (xhr, status, error) {
+                        $("#tableData").html("ERROR: "+error);
+                        $("#dlgModal").show();
+                    }
+                })
+            }
         });
 
         /*** Loading our data ***/
@@ -644,109 +661,9 @@ if (logged_in()) {
 
         ctlMeasure = L.control.polylineMeasure({position:'topright'}).addTo(mymap);
 
-        /*ctlLegend = new L.Control.Legend({
-            position: "topright",
-            controlButton: {
-                title: "Legend"
-            }
-        }).addTo(mymap);*/
-
         $(".legend-container").append($("#legend"));
         $(".legend-toggle").append($("<i class='legend-toggle-icon fa fa-server fa-2x' style='color: #000'> </i>"));
 
-        // **********  Setup Draw Control ****************
-
-        /* ctlDraw = new L.Control.Draw({
-             draw:{
-                 polygon: false,
-                 circle:false,
-                 rectangle:false,
-             },
-             edit:{
-                 featureGroup:fgpDrawnItems,
-                 remove: false
-             }
-         });
-         ctlDraw.addTo(mymap);
-
-         mymap.on('draw:created', function(e){
-             switch (e.layerType) {
-                 case "marker":
-                     let strTable;
-                     const llRef = e.layer.getLatLng();
-                     strTable = "<table class='table table-hover'>";
-                     strTable += "<tr><th>Constraint</th><th>ID</th><th>Type</th><th>Distance</th><th>Direction</th></tr>";
-                     let nrBUOWL = returnClosestLayer(lyrBUOWL, llRef);
-                     strTable += "<tr><td>BUOWL</td><td>"+nrBUOWL.att.habitat_id+"</td><td>"+nrBUOWL.att.recentstatus+"</td>" +
-                         "<td>"+nrBUOWL.distance.toFixed(0)+" m</td><td>"+nrBUOWL.bearing.toFixed(0)+"</td></tr>";
-                     let nrEagle = returnClosestLayer(lyrEagleNests, llRef);
-                     strTable += "<tr><td>Eagle Nest</td><td>"+nrEagle.att.nest_id+"</td><td>"+nrEagle.att.status+"</td>" +
-                         "<td>"+nrEagle.distance.toFixed(0)+" m</td><td>"+nrEagle.bearing.toFixed(0)+"</td></tr>";
-                     let nrRaptor = returnClosestLayer(lyrRaptorNests, llRef);
-                     strTable += "<tr><td>Raptor Nest</td><td>"+nrRaptor.att.Nest_ID+"</td><td>"+nrRaptor.att.recentspecies+"<br>"+nrRaptor.att.recentstatus+"</td>" +
-                         "<td>"+nrRaptor.distance.toFixed(0)+" m</td><td>"+nrRaptor.bearing.toFixed(0)+"</td></tr>";
-                     let nrGBH = returnClosestLayer(lyrGBH, llRef);
-                     strTable += "<tr><td>GBH</td><td>N/A</td><td>N/A</td>" +
-                         "<td>"+(nrGBH.distance+255).toFixed(0)+" m</td><td>"+nrGBH.bearing.toFixed(0)+"</td></tr>";
-                     strTable += "</table>"
-                     fgpDrawnItems.addLayer(e.layer.bindPopup(strTable, {maxWidth: 400}));
-                     break;
-                 case "polyline":
-                     const line = e.layer.toGeoJSON();
-                     const colEagle = summarizePointsByLine(line, 0.8, lyrEagleNests.toGeoJSON(), "status");
-
-                     const sumEagle = summarizeArray(colEagle.features[0].properties.statusVals);
-                     let strPopup = "Eagles";
-                     for (let i = 0; i < sumEagle[0].length; i++ ) {
-                         strPopup += "<br> "+sumEagle[0][i]+": "+sumEagle[1][i];
-                     }
-                     // Red tail hawk popup
-                     const arRTH = returnLayersByAttribute(lyrRaptorNests, "recentspecies", "Red-tail Hawk");
-                     const fcRTH = L.featureGroup(arRTH).toGeoJSON();
-                     const colRTH = summarizePointsByLine(line, 0.533, fcRTH, "recentstatus");
-
-                     const sumRTH = summarizeArray(colRTH.features[0].properties.recentstatusVals);
-                     strPopup += "<br>Hawks<br>&nbsp;&nbsp;Red-Tail Hawk"; // &nbsp - stands for: non bracking space. HTML ignores white space
-                     for (let i = 0; i < sumRTH[0].length; i++ ) {
-                         strPopup += "<br>&nbsp;&nbsp;&nbsp;&nbsp;"+sumRTH[0][i]+": "+sumRTH[1][i];
-                     }
-                     // Swaisons Hawk
-                     const arSWH = returnLayersByAttribute(lyrRaptorNests, "recentspecies", "Swainsons Hawk");
-                     const fcSWH = L.featureGroup(arSWH).toGeoJSON();
-                     const colSWH = summarizePointsByLine(line, 0.533, fcSWH, "recentstatus");
-
-                     const sumSWH = summarizeArray(colSWH.features[0].properties.recentstatusVals);
-                     strPopup += "<br>Hawks<br>&nbsp;&nbsp;Swainsons Hawk"; // &nbsp - stands for: non bracking space. HTML ignores white space
-                     for (let i = 0; i < sumSWH[0].length; i++ ) {
-                         strPopup += "<br>&nbsp;&nbsp;&nbsp;&nbsp;"+sumSWH[0][i]+": "+sumSWH[1][i];
-                     }
-                     //BUOWL Polygons
-                     const bufLine = turf.buffer(line, 0.05, "kilometers");
-                     const intBUOWL = intersectPolyByPolyFC(bufLine, lyrBUOWL.toGeoJSON());
-                     const intBUOWLline = intersectLineByPolyFC(line, lyrBUOWLbuffer.toGeoJSON());
-
-                     L.geoJSON(intBUOWL, {style: {color: "red", weight: 5}}).addTo(mymap);
-                     L.geoJSON(intBUOWLline, {style: {color: "red", weight: 5}}).addTo(mymap);
-
-                     var arBUOWLsummary = summarizePolyFC(intBUOWL, "hist_occup");
-                     strPopup += "<br>BUOWL<br>&nbsp;&nbsp;Direct Impacts";
-                     for (let i = 0; i < arBUOWLsummary[0].length; i ++) {
-                         strPopup += "<br>&nbsp;&nbsp;&nbsp;&nbsp;"+arBUOWLsummary[0][i]+": "+arBUOWLsummary[1][i]+" " +
-                             "("+(arBUOWLsummary[2][i]/10000).toFixed(1)+" hectare)";
-                     }
-                     var arBUOWLsummary = summarizeLineFC(intBUOWLline, "hist_occup");
-                     strPopup += "<br>BUOWL<br>&nbsp;&nbsp;Indirect Impacts";
-                     for (let i = 0; i < arBUOWLsummary[0].length; i ++) {
-                         strPopup += "<br>&nbsp;&nbsp;&nbsp;&nbsp;"+arBUOWLsummary[0][i]+": "+arBUOWLsummary[1][i]+" " +
-                             "("+(arBUOWLsummary[2][i]).toFixed(3)+" km)";
-                     }
-
-                     fgpDrawnItems.addLayer(e.layer.bindPopup(strPopup));
-                     e.layer.openPopup();
-                     break;
-             }
-
-         });*/
 
         // ************ Location Events **************
 
@@ -806,6 +723,53 @@ if (logged_in()) {
 
                 /*** BUOWL EDITING/DELETING EVENT HANDLERS ***/
 
+    $("#btnToggleBUOWLgeometry").click(function () {
+        $("#BUOWLGeojson").toggle();
+    })
+
+    $("#btnAddBUOWL").click(function () {
+        $("#buowl_id").val("New");
+        $("#txtFindBUOWL").val("New");
+        $("#buowl_habitat").val("");
+        $("#buowl_hist_occup").val("");
+        $("#buowl_recentstatus").val("");
+        $("#buowl_lastsurvey").val(returnCurrentDate());
+        // Populating the geojson id
+        $("#buowl_geojson").val("");
+        $("#BUOWLmetadata").html("");
+        $(".inpBUOWL").attr("disabled", false);
+        $("#buowl_id").attr("disabled", true);
+        $("#buowl_geojson").attr("disabled", true);
+        // Submitting a new form
+        $("#btnBUOWLInsert").show();
+        // Hiding update when insert is on
+        $("#btnBUOWLUpdate").hide();
+        $("#btnEditBUOWL").hide();
+        $("#btnDeleteBUOWL").hide();
+        // Turning the form on
+        $("#formBUOWL").show();
+    });
+
+    // Event handle for the submit button
+    $("#btnBUOWLInsert").click(function () {
+        // a little validation
+        if ($("#buowl_geojson").val() == "") {
+            alert("No geometry added")
+        } else if (($("#buowl_habitat").val() == "") || ($("#buowl_hist_occup").val() == "") || ($("#buowl_recentstatus").val() == "")) {
+            alert("Fill out the fields")
+        } else {
+            let jsn = returnFormData("inpBUOWL");
+            jsn.tbl = "dj_buowl";
+            delete jsn.id;
+            insertRecord(jsn)
+        }
+    });
+
+    function insertRecord(jsn) {
+        delete jsn.id;
+        alert("Inserting the following data into "+jsn.tbl+"\n\n"+JSON.stringify(jsn));
+    }
+
     $("#btnEditBUOWL").click(function () {
         $(".inpBUOWL").attr("disabled", false);
         // disabling the id field
@@ -818,30 +782,38 @@ if (logged_in()) {
 
     // Editing postGIS
     $("#btnEditBUOWLgeometry").click(function () {
-        const jsnMulti = JSON.parse($("#buowl_geojson").val());
-        const jsnSingle = {type: "Polygon", coordinates: jsnMulti.coordinates[0]};
-        const lyrEdit = L.geoJSON(jsnSingle).addTo(mymap);
-        // leaflet turning on editing on the map
-        lyrEdit.pm.enable();
-        // To save our changes on the polygons, we need an event handler to the map that will handle the right click (delete)
-        mymap.on("contextmenu", function () {
-            let jsnEdited;
-            if (confirm("Are you sure you want to update the geometry for this feature?")) {
-                // in order to work, we will take in the lyr converted to geojson
-                jsnEdited = lyrEdit.toGeoJSON();
-                // we want the geometry of the 1st Feature of the features array
-                jsnEdited = jsnEdited.features[0].geometry;
-                // Now we have to turn it into a multi polygon and inserted into our db and converting them into a 4 dimensional array
-                jsnEdited = {type: "Multipolygon", coordinates: [jsnEdited.coordinates]};
-                $("#buowl_geojson").val(JSON.stringify(jsnEdited))
-                // disable the edit layer after we save the changes
-                lyrEdit.pm.disable();
-                // We need to remove the layer from the map, bc it will still be there once we are done editing
-                lyrEdit.remove();
-                // this is going to delete all the event handlers for that edit event
-                mymap.off("contextmenu");
-            }
-        })
+        // Creating new geometries
+        if (isShowing("btnBUOWLUpdate")) {
+            const jsnMulti = JSON.parse($("#buowl_geojson").val());
+            const jsnSingle = {type: "Polygon", coordinates: jsnMulti.coordinates[0]};
+            const lyrEdit = L.geoJSON(jsnSingle).addTo(mymap);
+            // leaflet turning on editing on the map
+            lyrEdit.pm.enable();
+            // To save our changes on the polygons, we need an event handler to the map that will handle the right click (delete)
+            mymap.on("contextmenu", function () {
+                let jsnEdited;
+                if (confirm("Are you sure you want to update the geometry for this feature?")) {
+                    // in order to work, we will take in the lyr converted to geojson
+                    jsnEdited = lyrEdit.toGeoJSON();
+                    // we want the geometry of the 1st Feature of the features array
+                    jsnEdited = jsnEdited.features[0].geometry;
+                    // Now we have to turn it into a multi polygon and inserted into our db and converting them into a 4 dimensional array
+                    jsnEdited = {type: "Multipolygon", coordinates: [jsnEdited.coordinates]};
+                    $("#buowl_geojson").val(JSON.stringify(jsnEdited))
+                    // disable the edit layer after we save the changes
+                    lyrEdit.pm.disable();
+                    // We need to remove the layer from the map, bc it will still be there once we are done editing
+                    lyrEdit.remove();
+                    // this is going to delete all the event handlers for that edit event
+                    mymap.off("contextmenu");
+                }
+            })
+        } else if (isShowing("btnBUOWLInsert")) {
+            mymap.pm.enableDraw('Poly', {finishOn: 'contextmenu'}); // contextmenu is the event that occurs when I right click
+            alert("Creating new geometires")
+        } else {
+            alert("Editing not enabled")
+        }
     })
 
     // Submitting edit
