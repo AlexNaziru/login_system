@@ -818,7 +818,30 @@ if (logged_in()) {
 
     // Editing postGIS
     $("#btnEditBUOWLgeometry").click(function () {
-        alert("It works")
+        const jsnMulti = JSON.parse($("#buowl_geojson").val());
+        const jsnSingle = {type: "Polygon", coordinates: jsnMulti.coordinates[0]};
+        const lyrEdit = L.geoJSON(jsnSingle).addTo(mymap);
+        // leaflet turning on editing on the map
+        lyrEdit.pm.enable();
+        // To save our changes on the polygons, we need an event handler to the map that will handle the right click (delete)
+        mymap.on("contextmenu", function () {
+            let jsnEdited;
+            if (confirm("Are you sure you want to update the geometry for this feature?")) {
+                // in order to work, we will take in the lyr converted to geojson
+                jsnEdited = lyrEdit.toGeoJSON();
+                // we want the geometry of the 1st Feature of the features array
+                jsnEdited = jsnEdited.features[0].geometry;
+                // Now we have to turn it into a multi polygon and inserted into our db and converting them into a 4 dimensional array
+                jsnEdited = {type: "Multipolygon", coordinates: [jsnEdited.coordinates]};
+                $("#buowl_geojson").val(JSON.stringify(jsnEdited))
+                // disable the edit layer after we save the changes
+                lyrEdit.pm.disable();
+                // We need to remove the layer from the map, bc it will still be there once we are done editing
+                lyrEdit.remove();
+                // this is going to delete all the event handlers for that edit event
+                mymap.off("contextmenu");
+            }
+        })
     })
 
     // Submitting edit

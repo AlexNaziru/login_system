@@ -12,7 +12,15 @@ if (isset($_POST['tbl'])) {
         try {
             $sets = "";
             foreach ($_POST as $key => $value) {
-                $sets.="{$key}=:{$key}, ";
+                // adding for geojson data into our geom column in our db
+                if ($key == "geojson") {
+                    // We need to convert it from geojson to binary object.
+                    // Geojson doesnt have special ref associated. we need to give special reference using st_setsrid
+                    $sets.="geom = St_SetSRID(St_GeomFromGeoJSON(:geojson), 4326), ";
+                } else {
+                    // if not geojson data, it's just standard data
+                    $sets.="{$key}=:{$key}, ";
+                }
             }
             $sql = "UPDATE {$table} SET {$sets} modified = current_date, modifiedby = '{$username}' WHERE id = '{$id}' ";
             $result = $pdo->prepare($sql);
