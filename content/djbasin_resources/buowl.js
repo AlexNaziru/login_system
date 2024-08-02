@@ -117,6 +117,8 @@ function findBUOWL(val) {
                 $("#buowl_hist_occup").val(att.hist_occup);
                 $("#buowl_recentstatus").val(att.recentstatus);
                 $("#buowl_lastsurvey").val(att.lastsurvey);
+                // Populating the geojson id
+                $("#buowl_geojson").val(JSON.stringify(lyr.feature.geometry))
                 $("#BUOWLmetadata").html("CREATED "+att.created+" by "+att.createdby+"<br>Modified "+att.modified+" by"+att.modifiedby);
                 $(".inpBUOWL").attr("disabled", true);
                 // Turning the form on

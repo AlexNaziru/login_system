@@ -293,6 +293,16 @@ if (logged_in()) {
                                 <input type="date" class="form-control inpBUOWL" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" disabled>
                             </div>
                         </div>
+                        <div id="BUOWLGeojson" class="form-group">
+                            <label class="control-label col-sm-3" for="geojson">
+                                <span id="btnEditBUOWLgeometry"><i class="fa fa-pencil fa-2x"></i></span>
+                                GeoJSON:
+                            </label>
+                            <div class="col-sm-9">
+                                <textarea class="form-control inpBUOWL" name="geojson" id="buowl_geojson" placeholder="GeoJSON" disabled>
+                                </textarea>
+                            </div>
+                        </div>
                         <div id="BUOWLmetadata" class="col-xs-9"></div>
                         <div class="col-xs-3">
                             <span id="btnEditBUOWL"><i class="fa fa-pencil fa-2x"></i></span>
@@ -800,8 +810,15 @@ if (logged_in()) {
         $(".inpBUOWL").attr("disabled", false);
         // disabling the id field
         $("#buowl_id").attr("disabled", true);
+        // Disabling the geojson field
+        $("#buowl_geojson").attr("disabled", true);
         // Submit button will pop out when we click the edit button
         $("#btnBUOWLUpdate").show();
+    })
+
+    // Editing postGIS
+    $("#btnEditBUOWLgeometry").click(function () {
+        alert("It works")
     })
 
     // Submitting edit
