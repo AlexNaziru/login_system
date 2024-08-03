@@ -109,6 +109,7 @@ function returnMultiLength(arArLL) {
     }
     return total;
 }
+
 // Calculate the closest layer
 function returnClosestLayer(lyrGroup, llRef) {
     const arLyrs = lyrGroup.getLayers();
