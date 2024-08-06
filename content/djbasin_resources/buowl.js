@@ -138,9 +138,11 @@ function findBUOWL(val) {
 
                 $("#divBUOWLError").html("");
 
-                // Editing geometries. Leaflet Draw function doesn't handle polygons. But there are way to get around this.
-                /* fgpDrawnItems.clearLayers();
-                 fgpDrawnItems.addLayer(lyr);*/
+                // Hiding the created new BUOWL
+                $(".btnSurveys").hide();
+                // Turning the buttons edit & delete on if we press add btn and then search
+                $("#btnEditBUOWL").show();
+                $("#btnDeleteBUOWL").show();
 
                 // Selecting the survey button
                 $("#btnBUOWLsurveys").show();
@@ -174,7 +176,7 @@ function deleteRecord(tbl, id) {
     })
 }
 
-function updateRecord(jsn) {
+function updateRecord(jsn, callback) {
     $.ajax({
         url: "php/update_record.php",
         data: jsn,
@@ -183,16 +185,9 @@ function updateRecord(jsn) {
             if (response.substring(0,5) == "ERROR") {
                 alert(response);
             } else {
-                alert("Record "+jsn.id+ " in "+jsn.tbl+ "updated\n\n"+response);
-                // Controlling witch data is refreshed
-                switch (jsn.tbl) {
-                    case "dj_buowl":
-                        refreshBUOWL();
-                        // getting the habitat_id from the text box
-                        findBUOWL($("#txtFindBUOWL").val());
-                        break;
+                alert("Record "+jsn.id+ " in "+jsn.tbl);
+                callback();
                 }
-            }
         },
         error: function (xhr, status, error) {
             alert("AJAX ERROR: "+error);

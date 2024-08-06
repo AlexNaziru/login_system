@@ -296,12 +296,12 @@ if (logged_in()) {
                                 <input type="date" class="form-control inpBUOWL" name="lastsurvey" id="buowl_lastsurvey" placeholder="Last Survey" disabled>
                             </div>
                             <div class="col-sm-2">
-                                <span id="btnToggleBUOWLgeometry"><i class="fa fa-globe fa-2x"></i></span>
+                                <span id="btnToggleBUOWLgeometry"><i class="fa fa-globe fa-2x" title="Show features"></i></span>
                             </div>
                         </div>
                         <div id="BUOWLGeojson" class="form-group">
                             <label class="control-label col-sm-3" for="geojson">
-                                <span id="btnEditBUOWLgeometry"><i class="fa fa-pencil fa-2x"></i></span>
+                                <span id="btnEditBUOWLgeometry"><i class="fa fa-pencil fa-2x" title="Edit features geometry"></i></span>
                                 GeoJSON:
                             </label>
                             <div class="col-sm-9">
@@ -311,8 +311,8 @@ if (logged_in()) {
                         </div>
                         <div id="BUOWLmetadata" class="col-xs-9"></div>
                         <div class="col-xs-3">
-                            <span id="btnEditBUOWL"><i class="fa fa-pencil fa-2x"></i></span>
-                            <span id="btnDeleteBUOWL"><i class="fa fa-trash fa-2x pull-right"></i></span>
+                            <span id="btnEditBUOWL"><i class="fa fa-pencil fa-2x" title="Edit"></i></span>
+                            <span id="btnDeleteBUOWL"><i class="fa fa-trash fa-2x pull-right" title="Delete"></i></span>
                         </div>
                     </form>
                 </div>
@@ -424,7 +424,14 @@ if (logged_in()) {
                 <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
         </div>
-
+            <div class="leaflet-sidebar-pane" id="settings">
+                <h1 class="leaflet-sidebar-header">
+                    Setari
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div>
+                </h1>
+                <div id="logInInfo"></div>
+                <button id="btnLogout" class="btn btn-danger btn-block">Logout</button>
+            </div>
     </div>
 </div>
 <div id="mapdiv" class="col-md-12"></div>
@@ -488,7 +495,7 @@ if (logged_in()) {
             } else {
                 // it is passed as a string, but we need to parse it and JSON that we can use
                 user = JSON.parse(response);
-                alert("Logged in as "+user.firstname+" "+user.lastname+" on "+returnCurrentDate());
+                $("#logInInfo").html("Logged in as "+user.firstname+" "+user.lastname+" on "+returnCurrentDate());
             }
         }
     });
@@ -592,6 +599,12 @@ if (logged_in()) {
                     jsn = {type: "MultiPolygon", coordinates: [jsn.coordinates]}
                     // adding the json into the text box
                     $("#buowl_geojson").val(JSON.stringify(jsn));
+                    insertRecord(jsn, function () {
+                        refreshBUOWL();
+                        $("#formBUOWL").hide();
+                        // we do not want the New to appear after we saved a new entry
+                        $("#txtFindBUOWL").val("");
+                    })
                     console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
                 }
             } else {
@@ -688,6 +701,12 @@ if (logged_in()) {
         changeOptions("buowl_recentstatus", "dj_buowl", "recentstatus");
     });
 
+    // Logout button
+    $("#btnLogout").click(function () {
+        //redirecting
+        window.location="../logout.php"
+    })
+
     //  ********* BUOWL Functions
 
     $("#btnBUOWL").click(function () {
@@ -742,6 +761,7 @@ if (logged_in()) {
         $(".inpBUOWL").attr("disabled", false);
         $("#buowl_id").attr("disabled", true);
         $("#buowl_geojson").attr("disabled", true);
+        $("#BUOWLGeojson").show();
         // Submitting a new form
         $("#btnBUOWLInsert").show();
         // Hiding update when insert is on
@@ -763,11 +783,16 @@ if (logged_in()) {
             let jsn = returnFormData("inpBUOWL");
             jsn.tbl = "dj_buowl";
             delete jsn.id;
-            insertRecord(jsn)
+            insertRecord(jsn, function () {
+                refreshBUOWL();
+                $("#formBUOWL").hide();
+                // we do not want the New to appear after we saved a new entry
+                $("#txtFindBUOWL").val("");
+            })
         }
     });
 
-    function insertRecord(jsn) {
+    function insertRecord(jsn, callback) {
         delete jsn.id;
         $.ajax({
             url: "php/insert_record.php",
@@ -777,16 +802,8 @@ if (logged_in()) {
                 if (response.substring(0,5) == "ERROR") {
                     alert(response);
                 } else {
-                    alert("New record added into "+jsn.tbl+"\n\n"+response);
-                    // Controlling witch data is refreshed
-                    switch (jsn.tbl) {
-                        case "dj_buowl":
-                            refreshBUOWL();
-                            $("#formBUOWL").hide();
-                            // we do not want the New to appear after we saved a new entry
-                            $("#txtFindBUOWL").val("");
-                            break;
-                    }
+                    alert("New record added into "+jsn.tbl);
+                    callback();
                 }
             },
             error: function (xhr, status, error) {
@@ -803,6 +820,8 @@ if (logged_in()) {
         $("#buowl_geojson").attr("disabled", true);
         // Submit button will pop out when we click the edit button
         $("#btnBUOWLUpdate").show();
+        // geoJson data (coordinates)
+        $("#BUOWLGeojson").show();
     })
 
     // Editing postGIS
@@ -821,6 +840,12 @@ if (logged_in()) {
                     // Now we have to turn it into a multi polygon and inserted into our db and converting them into a 4 dimensional array
                     const jsnEdited = mergeLyrEdit(lyrEdit);
                     $("#buowl_geojson").val(JSON.stringify(jsnEdited));
+                    let jsn = returnFormData("inpBUOWL");
+                    jsn.tbl = "dj_buowl";
+                    updateRecord(jsn, function () {
+                        refreshBUOWL();
+                        findBUOWL($("#txtFindBUOWL").val());
+                    })
                     // disable the edit layer after we save the changes
                     lyrEdit.pm.disable();
                     // We need to remove the layer from the map, bc it will still be there once we are done editing
@@ -842,7 +867,11 @@ if (logged_in()) {
         const jsn = returnFormData("inpBUOWL");
         // This is a table property that it will be sent to an php script
         jsn.tbl = "dj_buowl";
-        updateRecord(jsn);
+        updateRecord(jsn, function () {
+            refreshBUOWL();
+            // getting the habitat_id from the text box
+            findBUOWL($("#txtFindBUOWL").val());
+        });
     })
 
     $("#btnDeleteBUOWL").click(function () {
