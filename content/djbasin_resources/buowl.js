@@ -152,7 +152,7 @@ function findBUOWL(val) {
         })
 }
 
-function deleteRecord(tbl, id) {
+function deleteRecord(tbl, id, callback) {
     $.ajax({
         url:"php/delete_record.php",
         data: {tbl:tbl, id:id},
@@ -161,13 +161,9 @@ function deleteRecord(tbl, id) {
             if (response.substring(0,5) == "ERROR") {
                 alert(response);
             } else {
-                alert("Record "+id+ " deleted from "+tbl+ "\n\n"+response);
+                alert("Record "+id+ " deleted from "+tbl);
                 // Controlling witch data is refreshed
-                switch (tbl) {
-                    case "dj_buowl":
-                    refreshBUOWL();
-                    break;
-                }
+                callback();
             }
         },
         error: function (xhr, status, error) {

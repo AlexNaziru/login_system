@@ -223,13 +223,13 @@ if (logged_in()) {
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="type">Type:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="type" id="linear_type" placeholder="Type" readonly>
+                                <input type="text" class="form-control" name="type" id="linear_type" placeholder="Type" disabled>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="row_width">ROW Width:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="row_width" id="linear_row_width" placeholder="ROW Width" readonly>
+                                <input type="text" class="form-control" name="row_width" id="linear_row_width" placeholder="ROW Width" disabled>
                             </div>
                         </div>
                         <div id="projectMetadata"></div>
@@ -354,13 +354,13 @@ if (logged_in()) {
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="status">Status</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="status" id="eagle_status" placeholder="Status" readonly>
+                                <input type="text" class="form-control" name="status" id="eagle_status" placeholder="Status" disabled>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="lastsurvey" id="eagle_lastsurvey" placeholder="Last Survey" readonly>
+                                <input type="text" class="form-control" name="lastsurvey" id="eagle_lastsurvey" placeholder="Last Survey" disabled>
                             </div>
                         </div>
                         <div id="eagleMetadata"></div>
@@ -403,19 +403,19 @@ if (logged_in()) {
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="recentstatus">Status:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="recentspecies" id="raptor_recentstatus" placeholder="Status" readonly>
+                                <input type="text" class="form-control" name="recentspecies" id="raptor_recentstatus" placeholder="Status" disabled>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="recentspecies">Species:</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" name="recentspecies" id="raptor_recentspecies" placeholder="Species" readonly>
+                                <input type="text" class="form-control" name="recentspecies" id="raptor_recentspecies" placeholder="Species" disabled>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="control-label col-sm-3" for="lastsurvey">Last Survey:</label>
                             <div class="col-sm-9">
-                                <input type="date" class="form-control" name="lastsurvey" id="raptor_lastsurvey" placeholder="Last Survey" readonly>
+                                <input type="date" class="form-control" name="lastsurvey" id="raptor_lastsurvey" placeholder="Last Survey" disabled>
                             </div>
                         </div>
                         <div id="raptorMetadata"></div>
@@ -446,19 +446,19 @@ if (logged_in()) {
                 <div class="form-group">
                     <label class="control-label col-sm-3" for="survey_id">ID:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control inpSurvey" name="id" id="survey_id" placeholder="Id" readonly>
+                        <input type="text" class="form-control inpSurvey" name="id" id="survey_id" placeholder="Id" disabled>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-sm-3" for="survey_habitat">Habitat ID:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control inpSurvey" name="habitat" id="survey_habitat" placeholder="Habitat Id" readonly>
+                        <input type="text" class="form-control inpSurvey" name="habitat" id="survey_habitat" placeholder="Habitat Id" disabled>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="control-label col-sm-3" for="survey_surveyor">Surveyor:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control inpSurvey" name="surveyor" id="survey_surveyor" placeholder="Surveyor" readonly>
+                        <input type="text" class="form-control inpSurvey" name="surveyor" id="survey_surveyor" placeholder="Surveyor" disabled>
                     </div>
                 </div>
                 <div class="form-group">
@@ -534,6 +534,7 @@ if (logged_in()) {
     var arHabitatIDs = [];
     var arEagleIDs = [];
     var arRaptorIDs = [];
+    let lyrEdit;
 
     $(document).ready(function(){
 
@@ -615,10 +616,23 @@ if (logged_in()) {
             } else if (isShowing("btnBUOWLUpdate") && e.shape == "Polygon") {
                 // adding multipolygon, we need to treat it as a part and not a new feature
                 if (confirm("Are you sure you want to add this part to the selected feature")) {
-                    // Getting the coordinates of that geometry
+                    // Getting the coordinates of that geometry we are adding to our existing one
                     const coordinates = jsn.coordinates;
-                    jsn = JSON.parse("#buowl_geojson").val();
-                    jsn.coordinates.
+                    jsn = JSON.parse($("#buowl_geojson").val());
+                    jsn.coordinates.push(coordinates);
+                    $("#buowl_geojson").val(JSON.stringify(jsn));
+                    // Updating the extra polygon to our db table
+                    // watch your variables. If you declared it on top, don't declare it again
+                    jsn = returnFormData("inpBUOWL");
+                    jsn.tbl = "dj_buowl";
+                    updateRecord(jsn, function () {
+                        refreshBUOWL();
+                        findBUOWL($("#txtFindBUOWL").val());
+                    })
+                    // disable the edit layer after we save the changes
+                    lyrEdit.pm.disable();
+                    // We need to remove the layer from the map, bc it will still be there once we are done editing
+                    lyrEdit.remove();
                     alert("Adding part")
                 }
             } else {
@@ -782,6 +796,8 @@ if (logged_in()) {
         $("#btnBUOWLUpdate").hide();
         $("#btnEditBUOWL").hide();
         $("#btnDeleteBUOWL").hide();
+        // Hiding the multi polygon btn
+        $("#btnAddBUOWLPart").hide();
         // Turning the form on
         $("#formBUOWL").show();
     });
@@ -844,7 +860,11 @@ if (logged_in()) {
         if (isShowing("btnBUOWLUpdate")) {
             const jsnMulti = JSON.parse($("#buowl_geojson").val());
             const jsnSingle = explodeMulti(jsnMulti);
-            const lyrEdit = L.geoJSON(jsnSingle).addTo(mymap);
+            lyrEdit = L.geoJSON(jsnSingle).addTo(mymap);
+            // Deleting parts from multipart polygon. Each layer gets individual layers
+            lyrEdit.eachLayer(function (lyr) {
+               lyr.bindPopup("<button class='btn btn-danger' onclick='lyrEdit.removeLayer("+L.stamp(lyr)+")'>Delete</button>")
+            });
             // leaflet turning on editing on the map
             lyrEdit.pm.enable();
             // To save our changes on the polygons, we need an event handler to the map that will handle the right click (delete)
@@ -854,6 +874,7 @@ if (logged_in()) {
                     // Now we have to turn it into a multi polygon and inserted into our db and converting them into a 4 dimensional array
                     const jsnEdited = mergeLyrEdit(lyrEdit);
                     $("#buowl_geojson").val(JSON.stringify(jsnEdited));
+                    // Updating
                     let jsn = returnFormData("inpBUOWL");
                     jsn.tbl = "dj_buowl";
                     updateRecord(jsn, function () {
@@ -897,7 +918,10 @@ if (logged_in()) {
     $("#btnDeleteBUOWL").click(function () {
         const id = $("#buowl_id").val();
         if (confirm("Are you sure you want to delete this BUOWL "+id+"?")) {
-            deleteRecord("dj_buowl", id); // this was a string and it deleted all
+            deleteRecord("dj_buowl", id, function () {
+                // Controlling witch data is refreshed
+                refreshBUOWL();
+            }); // this was a string and it deleted all
             $("#formBUOWL").hide();
             // erasing the information in the html once delete from the db
             $("#divBUOWLAffected").html("");
