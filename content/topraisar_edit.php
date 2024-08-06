@@ -238,7 +238,7 @@ if (logged_in()) {
                 <div class="" id="divProjectAffected"></div>
             </div>
         </div>
-
+<!-- BUOWL -->
         <div class="leaflet-sidebar-pane" id="buowl">
             <h1 class="leaflet-sidebar-header">Burrowing Owl Habitat <button id="btnRefreshBUOWL" class="btn btn-primary"><i class="fa fa-refresh"></i></button>
                 <button id="btnAddBUOWL" class="btn btn-success"><i class="fa fa-plus"></i></button>
@@ -302,6 +302,7 @@ if (logged_in()) {
                         <div id="BUOWLGeojson" class="form-group">
                             <label class="control-label col-sm-3" for="geojson">
                                 <span id="btnEditBUOWLgeometry"><i class="fa fa-pencil fa-2x" title="Edit features geometry"></i></span>
+                                <span id="btnAddBUOWLPart"><i class="fa fa-plus fa-2x" title="Add part to feature geometry"></i></span>
                                 GeoJSON:
                             </label>
                             <div class="col-sm-9">
@@ -588,7 +589,8 @@ if (logged_in()) {
 
         // listen to when a new layer is created
         mymap.on('pm:create', function(e) {
-            let jsn = e.layer.toGeoJSON().geometry;
+            let jsn;
+            jsn = e.layer.toGeoJSON().geometry;
             console.log("Layer created event triggered"); // Log the event trigger
             console.log("Shape created:", e.shape);
 
@@ -599,13 +601,25 @@ if (logged_in()) {
                     jsn = {type: "MultiPolygon", coordinates: [jsn.coordinates]}
                     // adding the json into the text box
                     $("#buowl_geojson").val(JSON.stringify(jsn));
+                    jsn = returnFormData("inpBUOWL");
+                    jsn.tbl = "dj_buowl";
+                    delete jsn.id;
                     insertRecord(jsn, function () {
                         refreshBUOWL();
                         $("#formBUOWL").hide();
+                        $("#btnBUOWLInsert").hide();
                         // we do not want the New to appear after we saved a new entry
                         $("#txtFindBUOWL").val("");
                     })
-                    console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
+                }
+            } else if (isShowing("btnBUOWLUpdate") && e.shape == "Polygon") {
+                // adding multipolygon, we need to treat it as a part and not a new feature
+                if (confirm("Are you sure you want to add this part to the selected feature")) {
+                    // Getting the coordinates of that geometry
+                    const coordinates = jsn.coordinates;
+                    jsn = JSON.parse("#buowl_geojson").val();
+                    jsn.coordinates.
+                    alert("Adding part")
                 }
             } else {
                 jsn = e.layer.toGeoJSON().geometry;
@@ -860,6 +874,12 @@ if (logged_in()) {
         } else {
             alert("Editing not enabled")
         }
+    })
+
+    // Adding multipolygon
+
+    $("#btnAddBUOWLPart").click(function () {
+        mymap.pm.enableDraw('Poly', {finishOn: 'contextmenu'}); // contextmenu is the event that occurs when I right click
     })
 
     // Submitting edit
