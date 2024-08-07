@@ -857,6 +857,7 @@ if (logged_in()) {
 
     // Editing postGIS
     $("#btnEditBUOWLgeometry").click(function () {
+        let jsn;
         // Creating new geometries
         if (isShowing("btnBUOWLUpdate")) {
             const jsnMulti = JSON.parse($("#buowl_geojson").val());
@@ -876,7 +877,7 @@ if (logged_in()) {
                     const jsnEdited = mergeLyrEdit(lyrEdit);
                     $("#buowl_geojson").val(JSON.stringify(jsnEdited));
                     // Updating
-                    let jsn = returnFormData("inpBUOWL");
+                    jsn = returnFormData("inpBUOWL");
                     jsn.tbl = "dj_buowl";
                     updateRecord(jsn, function () {
                         refreshBUOWL();
