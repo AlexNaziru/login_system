@@ -53,30 +53,89 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+    <style>
+        .container {
+            margin-top: 100px;
+        }
+        .panel-login {
+            border-color: #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .panel-login .panel-heading {
+            color: #00415d;
+            background-color: #f7f7f7;
+            border-color: #fff;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .panel-login .panel-heading a {
+            text-decoration: none;
+            color: #666;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.1s linear;
+        }
+        .panel-login .panel-heading a.active {
+            color: #029f5b;
+            font-size: 24px;
+        }
+        .panel-login .panel-heading hr {
+            margin-top: 10px;
+            margin-bottom: 0;
+            clear: both;
+            border: 0;
+            height: 1px;
+            background: #ddd;
+        }
+        .panel-login input[type="text"], .panel-login input[type="password"] {
+            height: 45px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .btn-custom {
+            background-color: #029f5b;
+            color: #fff;
+            border-color: #029f5b;
+        }
+        .btn-custom:hover, .btn-custom:focus {
+            background-color: #027c47;
+            border-color: #027c47;
+            color: #fff;
+        }
+        .forgot-password {
+            color: #029f5b;
+        }
+        .forgot-password:hover, .forgot-password:focus {
+            color: #027c47;
+            text-decoration: underline;
+        }
+    </style>
     <?php include "includes/header.php" ?>
     <body>
         <?php include "includes/nav.php" ?>
         <div class="container">
-    	    <div class="row">
-			    <div class="col-md-6 col-md-offset-3">
-                    <?php
-                    show_msg();
-                    ?>
-				    <div class="panel panel-login">
-					    <div class="panel-body">
-						    <div class="row">
-							    <div class="col-lg-12">
-								    <form id="login-form"  method="post" role="form" style="display: block;">
-									    <div class="form-group">
-										    <input type="text" name="username" id="username" tabindex="1" class="form-control"
-                                                   placeholder="Username" value="<?php echo $username; ?>" required>
-									    </div>
-									    <div class="form-group">
-										    <input type="password" name="password" id="login-
-										password" tabindex="2" class="form-control" placeholder="Password" value="<?php echo $password; ?>" required>
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <?php show_msg(); ?>
+                    <div class="panel panel-login">
+                        <div class="panel-heading">
+                            <a href="#" class="active">Login</a>
+                            <hr>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <form id="login-form" method="post" role="form" style="display: block;">
+                                        <div class="form-group">
+                                            <input type="text" name="username" id="username" tabindex="1"
+                                                   class="form-control" placeholder="Username" value="<?php echo $username; ?>" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" name="password" id="login-password" tabindex="2"
+                                                   class="form-control" placeholder="Password" value="<?php echo $password; ?>" required>
                                         </div>
                                         <div class="form-group text-center">
-                                            <input type="checkbox" tabindex="3" class="" name="remember" id="remember">
+                                            <input type="checkbox" tabindex="3" name="remember" id="remember">
                                             <label for="remember">Stay logged in</label>
                                         </div>
                                         <div class="form-group">
