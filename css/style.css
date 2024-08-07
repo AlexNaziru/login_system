@@ -1,67 +1,15 @@
 body {
-    padding-top: 90px;
-    color:#424242;
-}
-
-a:visited {
-    color:#26A69A;
-}
-
-a:link {
-    color:#424242;
-}
-
-a:hover {
-    color:#26A69A;
+    color: #424242;
 }
 
 .btn-custom {
     color:#E0E0E0;
-    background-color: #26A69A;
+    background-color: #1c1e53;
 }
 
-nav a:visited {
-    color:#E0E0E0;
-}
-
-nav a:link {
-    color:#E0E0E0;
-}
-
-nav a:hover {
-    color:#424242;
-}
-
-.navbar-inverse {
+.btn-custom:hover {
     color: #E0E0E0;
-    background-color: #26A69A;
+    background-color: #5e3bee;
 }
 
-.navbar-inverse .navbar-nav > li > a {
-    color: #E0E0E0;
-    background-color: #26A69A;
-}
 
-.navbar-inverse .navbar-nav > li > a:hover {
-    color: #E0E0E0;
-    background-color: #26A69A;
-}
-
-.navbar-inverse .navbar-brand {
-    color: #E0E0E0;
-    background-color: #26A69A;
-}
-
-.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
-    color: #E0E0E0;
-    background-color: #26A69A;
-}
-
-.nav-tabs > li > a {
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.table-group-header {
-    border: 2px solid #26A69A;
-}

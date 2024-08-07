@@ -62,7 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .panel-login .panel-heading {
-            color: #00415d;
+            color: #1c1e53;
             background-color: #f7f7f7;
             border-color: #fff;
             text-align: center;
@@ -76,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transition: all 0.1s linear;
         }
         .panel-login .panel-heading a.active {
-            color: #029f5b;
+            color: #5e3bee;
             font-size: 24px;
         }
         .panel-login .panel-heading hr {
@@ -93,20 +93,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 16px;
         }
         .btn-custom {
-            background-color: #029f5b;
+            background-color: #5e3bee;
             color: #fff;
-            border-color: #029f5b;
+            border-color: #5e3bee;
         }
         .btn-custom:hover, .btn-custom:focus {
-            background-color: #027c47;
-            border-color: #027c47;
+            background-color: #5e3bee;
+            border-color: #5e3bee;
             color: #fff;
         }
         .forgot-password {
-            color: #029f5b;
+            color: #5e3bee;
         }
         .forgot-password:hover, .forgot-password:focus {
-            color: #027c47;
+            color: #5e3bee;
             text-decoration: underline;
         }
     </style>
