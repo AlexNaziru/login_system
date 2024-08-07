@@ -60,6 +60,7 @@ if (logged_in()) {
         <script src="src/jquery-ui.min.js"></script>
         <script src="src/plugins/leaflet-legend.js"></script>
         <script src="src/plugins/leaflet.pm.min.js"></script>
+        <script src="js/general_functions.js"></script>
 
         <style>
             #mapdiv {
@@ -380,6 +381,16 @@ if (logged_in()) {
                 </div>
             </div>
 
+            <div class="leaflet-sidebar-pane" id="settings"">
+                <h1 class="leaflet-sidebar-header">
+                    Setari
+                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div>
+                </h1>
+                <div id="logInInfo" style="margin-top: 10px;"></div>
+                <a href="../mycontent.php"><button class="btn btn-info btn-block" style="margin-bottom: 10px; margin-top: 10px">My Content</button></a>
+                <button id="btnLogout" class="btn btn-danger btn-block">Logout</button>
+            </div>
+
         </div>
     </div>
         <div id="mapdiv" class="col-md-12"></div>
@@ -392,6 +403,20 @@ if (logged_in()) {
         </div>
 
         <script>
+            /* Global variables */
+            let user;
+            $.ajax({
+                url: "php/return_user.php",
+                success: function (response) {
+                    if (response.substring(0,5) == "ERROR") {
+                        alert(response);
+                    } else {
+                        // it is passed as a string, but we need to parse it and JSON that we can use
+                        user = JSON.parse(response);
+                        $("#logInInfo").html("Logged in as "+user.firstname+" "+user.lastname+" on "+returnCurrentDate());
+                    }
+                }
+            });
             var mymap;
             var lyrOSM;
             var lyrWatercolor;
@@ -484,7 +509,7 @@ if (logged_in()) {
                     const jsn = e.layer.toGeoJSON().geometry;
                     console.log("Type: "+e.shape+"\nGeometry:"+JSON.stringify(jsn))
                     $.ajax({
-                        url: "dj_basin_affected_constraints.php",
+                        url: "djbasin_resources/php_affected_constraints.php",
                         data: {id: 'geojson', geojson: JSON.stringify(jsn)},
                         type: "POST",
                         success: function (response) {
@@ -507,6 +532,12 @@ if (logged_in()) {
                 refreshLinears();
                 refreshBUOWL();
                 refreshGBH();
+
+                // Logout button
+                $("#btnLogout").click(function () {
+                    //redirecting
+                    window.location="../logout.php"
+                })
                 
                 // ********* Setup Layer Control  ***************
                 
@@ -730,7 +761,7 @@ if (logged_in()) {
                             "<h5>Recent Status: " + att.recentstatus + "</h5>");*/
 
                         $.ajax({
-                            url: "dj_basin_affected_projects.php",
+                            url: "djbasin_resources/php_basin_affected_projects.php",
                             data: {tbl: "dj_buowl", distance: 300, fld: "habitat_id", id: val},
                             type: "POST",
                             success: function (response) {
@@ -783,7 +814,7 @@ if (logged_in()) {
                 } else {
                     objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup"};
                 }
-                $.ajax({url: "load_data.php",
+                $.ajax({url: "php/load_data.php",
                     data: objData,
                     type: "POST",
                     success: function (response){
@@ -827,7 +858,7 @@ if (logged_in()) {
                 } else {
                     objData = {tbl: "dj_buowl", flds: "id, habitat_id, habitat, recentstatus, hist_occup", distance: 300};
                 }
-                $.ajax({url: "load_data.php",
+                $.ajax({url: "php/load_data.php",
                     data: objData,
                     type: "POST",
                     success: function (response){
@@ -919,7 +950,7 @@ if (logged_in()) {
                             $("#formProject").show();
 
                             $.ajax({
-                                url:'dj_basin_affected_constraints.php',
+                                url:'djbasin_resources/php_affected_constraints.php',
                                 data:{id:val},
                                 type:'POST',
                                 success:function(response){
@@ -1010,7 +1041,7 @@ if (logged_in()) {
                 } else {
                     objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project"};
                 }
-                $.ajax({url: "load_data.php",
+                $.ajax({url: "php/load_data.php",
                     data: objData,
                     type: "POST",
                     success: function (response){
@@ -1061,7 +1092,7 @@ if (logged_in()) {
                 } else {
                     objData = {tbl: "dj_linear_projects", flds: "id, type, row_width, project", distance: "row_width"};
                 }
-                $.ajax({url: "load_data.php",
+                $.ajax({url: "php/load_data.php",
                     data: objData,
                     type: "POST",
                     success: function (response){
@@ -1137,7 +1168,7 @@ if (logged_in()) {
                         $("#divEagleData").html("<h4 class='text-center'>Attributes</h4><h5>Status: " + att.status + "</h5>");
 
                         $.ajax({
-                            url: "dj_basin_affected_projects.php",
+                            url: "djbasin_resources/php_basin_affected_projects.php",
                             data: {tbl: "dj_eagle", distance: 804, fld: "nest_id", id:val},//meters
                             type: "POST",
                             success: function (response) {
@@ -1189,7 +1220,7 @@ if (logged_in()) {
                     // if there is no where clause, returning everything from the database
                     objData = {tbl: "dj_eagle", flds: "id, status, nest_id"};
                 }
-                $.ajax({url: "load_data.php",
+                $.ajax({url: "php/load_data.php",
                     data: objData,
                     type: "POST",
                     success: function (response){
@@ -1337,7 +1368,7 @@ if (logged_in()) {
                     objData = {tbl: "dj_raptor", flds: "id, nest_id, recentstatus, recentspecies, lastsurvey"}
                 }
                 $.ajax({
-                    url: "load_data.php",
+                    url: "php/load_data.php",
                     data: objData,
                     type: "POST",
                     success: function (response) {
@@ -1378,7 +1409,7 @@ if (logged_in()) {
             //               /*** GBH Functions ***/
 
             function refreshGBH() {
-                $.ajax({url: "load_data.php",
+                $.ajax({url: "php/load_data.php",
                     data: {tbl: "dj_gbh", flds: "id, activity"},
                     type: "POST",
                     success: function (response){
@@ -1422,7 +1453,7 @@ if (logged_in()) {
                 const whr = "habitat="+search_id;
                 $("#dlgModal").show();
                 $.ajax({
-                    url: "load_table.php",
+                    url: "php/load_table.php",
                     data: {tbl: "dj_raptor_survey", title: 'Surveys for Raptor Nest '+search_id, order: "surveydate DESC",
                             flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                             where:whr},
@@ -1445,7 +1476,7 @@ if (logged_in()) {
                 const whr = "habitat="+search_id;
                 $("#dlgModal").show();
                 $.ajax({
-                    url: "load_table.php",
+                    url: "php/load_table.php",
                     data: {tbl: "dj_eagle_surveys", title: 'Surveys for Eagle Nest '+search_id, order: "surveydate DESC",
                         flds: 'surveyor AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                         where:whr},
@@ -1468,7 +1499,7 @@ if (logged_in()) {
                 const whr = "habitat="+search_id;
                 $("#dlgModal").show();
                 $.ajax({
-                    url: "load_table.php",
+                    url: "php/load_table.php",
                     data: {tbl: "dj_buowl_survey", title: 'Surveys for BUOWL habitat '+search_id, order: "surveydate DESC",
                         flds: '"surveyor" AS "Surveyor", surveydate AS "Survey Date", result AS "Result"',
                         where:whr},
@@ -1520,7 +1551,7 @@ if (logged_in()) {
                 // server side from the database
                 let whr = fld+"='"+val+"'";
                 $.ajax({
-                    url: "load_data.php",
+                    url: "php/load_data.php",
                     data: {tbl: tbl, where: whr},
                     type: "POST",
                     success: function (response) {

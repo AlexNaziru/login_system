@@ -425,14 +425,15 @@ if (logged_in()) {
                 <button id="btnRaptorSurveys" class="btnSurveys btn btn-danger btn-block">Show Surveys</button>
             </div>
         </div>
-            <div class="leaflet-sidebar-pane" id="settings">
-                <h1 class="leaflet-sidebar-header">
-                    Setari
-                    <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div>
-                </h1>
-                <div id="logInInfo"></div>
-                <button id="btnLogout" class="btn btn-danger btn-block">Logout</button>
-            </div>
+        <div class="leaflet-sidebar-pane" id="settings"">
+            <h1 class="leaflet-sidebar-header">
+                Setari
+                <div class="leaflet-sidebar-close"><i class="fa fa-caret-left"></i></div>
+            </h1>
+            <div id="logInInfo" style="margin-top: 10px;"></div>
+            <a href="../mycontent.php"><button class="btn btn-info btn-block" style="margin-bottom: 10px; margin-top: 10px">My Content</button></a>
+            <button id="btnLogout" class="btn btn-danger btn-block">Logout</button>
+        </div>
     </div>
 </div>
 <div id="mapdiv" class="col-md-12"></div>
